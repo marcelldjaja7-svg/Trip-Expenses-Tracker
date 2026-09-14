@@ -53,12 +53,12 @@ export function TripPage({ trip }: { trip: Trip }) {
   }
 
   return (
-    <Screen className="pb-36 pt-[max(0.25rem,env(safe-area-inset-top))] sm:pb-16">
-      <div className="sticky top-0 z-20 -mx-4 flex h-12 items-center justify-between bg-[var(--nav-bg)] px-2 backdrop-blur-xl backdrop-saturate-150 sm:px-4">
+    <Screen className="pb-36 pt-0 sm:pb-16">
+      <div className="sticky top-0 z-20 -mx-4 flex min-h-12 items-center justify-between bg-[var(--nav-bg)] px-2 pt-[env(safe-area-inset-top)] backdrop-blur-xl backdrop-saturate-150 sm:px-4">
         <button
           type="button"
           onClick={() => selectTrip(null)}
-          className="pressable inline-flex items-center gap-0.5 rounded-full px-2 py-2 text-[17px] text-[var(--accent)]"
+          className="pressable inline-flex min-h-[44px] items-center gap-0.5 rounded-full px-2 py-2 text-[17px] text-[var(--accent)]"
         >
           <ArrowLeft size={20} strokeWidth={2} />
           Trips
@@ -72,7 +72,7 @@ export function TripPage({ trip }: { trip: Trip }) {
           <button
             type="button"
             onClick={() => void shareWithFriends(trip)}
-            className="pressable inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill)] text-[var(--accent)]"
+            className="pressable inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--fill)] text-[var(--accent)]"
             aria-label="Invite friends"
           >
             <Share size={16} strokeWidth={2} />
@@ -81,7 +81,7 @@ export function TripPage({ trip }: { trip: Trip }) {
             <button
               type="button"
               onClick={openNew}
-              className="pressable inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white"
+              className="pressable inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-white"
               aria-label="Add expense"
             >
               <Plus size={18} strokeWidth={2.25} />
@@ -286,8 +286,8 @@ function TabBtn({
       className={cn(
         'inline-flex items-center justify-center gap-1 rounded-[7px] font-medium',
         compact
-          ? 'px-3 py-1.5 text-[13px]'
-          : 'min-w-[4.5rem] flex-col gap-0.5 px-3 py-1 text-[10px]',
+          ? 'min-h-[36px] px-3 py-1.5 text-[13px]'
+          : 'min-h-[44px] min-w-[4.5rem] flex-col gap-0.5 px-3 py-1 text-[10px]',
         on ? 'text-[var(--accent)]' : 'text-[var(--muted)]',
         compact && on && 'bg-white text-black shadow-sm dark:bg-[var(--grouped-3)] dark:text-white',
       )}

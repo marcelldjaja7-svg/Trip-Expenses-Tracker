@@ -39,13 +39,23 @@ Tests:
 npm test
 ```
 
-No API keys. Optional “Fetch live” rates use the public [Frankfurter](https://www.frankfurter.app/) API; if the network is down, keep using the manual rates.
+No API keys are required to use TripTab. Optional extras:
+
+- **Fetch live rates** uses the public [Frankfurter](https://www.frankfurter.app/) API.
+- **Scan bill** uses [Google Gemini](https://aistudio.google.com/apikey) vision. Paste a free API key once under **Scan bills** (home or trip settings). It stays in this browser’s `localStorage` and is never written into trip backups or live invite links. Without a key, take/upload still works as a preview, and you enter the expense yourself.
+
+## Scan a receipt on your phone
+
+1. Add TripTab to your Home Screen (Share → Add to Home Screen on iOS, or Chrome’s install prompt on Android) so it feels like an app.
+2. Optional: paste a Gemini API key under **Scan bills**.
+3. Open a trip → **Add Expense** → **Take Photo** or **Library**.
+4. Review amount, currency, note, date, and category. Edit anything. Tap **Add Expense** to save — scans never auto-save.
 
 ## How to use (with your group)
 
 1. **Create a trip** — name it, pick a vibe emoji, optional dates, and a home/base currency. New trips default to **Indonesian Rupiah (IDR)**. You can still settle in USD, SGD, etc.
 2. **Add friends** — everyone on the trip. You can rename or recolor them later.
-3. **Log expenses** — amount, currency, who paid, who is on the bill, category, note, date.
+3. **Log expenses** — amount, currency, who paid, who is on the bill, category, note, date. Or **Scan bill** from a photo and then confirm.
    - **Equal** — split evenly among people marked **In**.
    - **Amounts** — type each person’s share.
    - **%** — split by percentage (must add up to 100%).

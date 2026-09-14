@@ -6,6 +6,7 @@ import { formatMoney, tripTotalBase } from '../lib/money'
 import { downloadJson } from '../lib/share'
 import { cn, todayISO } from '../lib/utils'
 import { useStore } from '../state'
+import { ScanSettings } from './ScanSettings'
 import {
   AvatarStack,
   Button,
@@ -37,8 +38,8 @@ export function HomePage() {
   }
 
   return (
-    <Screen className="pb-16 pt-[max(0.5rem,env(safe-area-inset-top))]">
-      <header className="sticky top-0 z-20 -mx-4 mb-1 flex h-12 items-center justify-between bg-[var(--nav-bg)] px-4 backdrop-blur-xl backdrop-saturate-150">
+    <Screen className="pb-16 pt-0">
+      <header className="sticky top-0 z-20 -mx-4 mb-1 flex min-h-12 items-center justify-between bg-[var(--nav-bg)] px-4 pt-[env(safe-area-inset-top)] backdrop-blur-xl backdrop-saturate-150">
         <div className="flex items-center gap-2.5">
           <Glyph className="h-7 w-7 bg-[var(--accent)] text-[13px] text-white">✈️</Glyph>
           <span className="text-[17px] font-semibold">TripTab</span>
@@ -135,6 +136,9 @@ export function HomePage() {
           </GroupRow>
         )}
       </Group>
+
+      <SectionLabel>Scan bills</SectionLabel>
+      <ScanSettings onNotify={notify} />
 
       <NewTripModal open={open} onClose={() => setOpen(false)} onCreate={createTrip} />
     </Screen>

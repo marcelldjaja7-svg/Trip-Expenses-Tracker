@@ -10,8 +10,10 @@ import {
   sharesMatchTotal,
   sharesSum,
 } from '../lib/money'
+import type { ReceiptScan } from '../lib/receipt'
 import { cn, todayISO, uid } from '../lib/utils'
 import type { Expense, SplitMode, Trip } from '../types'
+import { BillScanPanel, ScanLines } from './BillScan'
 import { Avatar, Button, Group, GroupRow, Modal, Segmented, TextInput } from './ui'
 
 type Props = {
@@ -60,6 +62,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
     return r ? String(roundTo(r, 8)) : '1'
   })
   const [error, setError] = useState('')
+  const [scanLines, setScanLines] = useState<{ name: string; amount: number }[]>([])
 
   const parsedAmount = Number(amount)
   const rate = Number(rateDraft)
@@ -127,6 +130,20 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
     if (mode === 'percent') fillEqualPercents()
   }
 
+  const applyScan = (scan: ReceiptScan) => {
+    if (scan.amount !== undefined) setAmount(String(scan.amount))
+    if (scan.currency) {
+      setCurrency(scan.currency)
+      const existing = trip.rates[scan.currency]
+      setRateDraft(existing ? String(roundTo(existing, 8)) : '1')
+    }
+    if (scan.note) setNote(scan.note)
+    if (scan.date) setDate(scan.date)
+    if (scan.categoryId) setCategoryId(scan.categoryId)
+    setScanLines(scan.lineItems ?? [])
+    setError('')
+  }
+
   const submit = () => {
     setError('')
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
@@ -175,6 +192,9 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
         <p className="text-[15px] text-[var(--muted)]">Add friends to the trip before logging expenses.</p>
       ) : (
         <div className="space-y-4">
+          <BillScanPanel trip={trip} onApply={applyScan} />
+          {scanLines.length > 0 && <ScanLines items={scanLines} currency={currency} />}
+
           <Group>
             <GroupRow>
               <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Amount</span>
@@ -184,7 +204,6 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
-                autoFocus
               />
             </GroupRow>
             <GroupRow>
@@ -260,7 +279,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                   onClick={() => setPaidBy(p.id)}
                   data-on={paidBy === p.id}
                   className={cn(
-                    'chip flex items-center gap-2 rounded-full px-2 py-1.5 pr-3 text-[15px] font-medium',
+                    'chip flex min-h-[44px] items-center gap-2 rounded-full px-2.5 py-1.5 pr-3 text-[15px] font-medium',
                     paidBy === p.id ? 'text-white' : 'bg-[var(--fill)]',
                   )}
                   style={paidBy === p.id ? { background: p.color } : undefined}
@@ -285,7 +304,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
-                className="rounded-full bg-[var(--fill)] px-3 py-1 text-[13px] font-medium"
+                className="min-h-[36px] rounded-full bg-[var(--fill)] px-3 py-1.5 text-[13px] font-medium"
                 onClick={() => {
                   const ids = trip.people.map((p) => p.id)
                   setParticipants(ids)
@@ -297,7 +316,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
               </button>
               <button
                 type="button"
-                className="rounded-full bg-[var(--fill)] px-3 py-1 text-[13px] font-medium"
+                className="min-h-[36px] rounded-full bg-[var(--fill)] px-3 py-1.5 text-[13px] font-medium"
                 onClick={() => {
                   if (!paidBy) return
                   setParticipants([paidBy])
@@ -320,7 +339,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                       type="button"
                       onClick={() => togglePerson(p.id)}
                       className={cn(
-                        'rounded-full px-3 py-1 text-[13px] font-semibold',
+                        'min-h-[32px] min-w-[44px] rounded-full px-3 py-1 text-[13px] font-semibold',
                         on ? 'bg-[var(--accent)] text-white' : 'bg-[var(--fill)] text-[var(--muted)]',
                       )}
                     >
@@ -405,7 +424,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                   key={c.id}
                   onClick={() => setCategoryId(c.id)}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-[15px] font-medium',
+                    'min-h-[36px] rounded-full px-3 py-1.5 text-[15px] font-medium',
                     categoryId === c.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--fill)]',
                   )}
                 >

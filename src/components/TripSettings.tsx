@@ -8,6 +8,7 @@ import { normalizeAppData, normalizeTrip } from '../lib/storage'
 import { cn, uid } from '../lib/utils'
 import { useStore } from '../state'
 import type { Trip } from '../types'
+import { ScanSettings } from './ScanSettings'
 import { Avatar, Group, GroupRow, SectionLabel, Select, TextInput } from './ui'
 
 export function TripSettings({
@@ -317,6 +318,9 @@ export function TripSettings({
             )
           })}
       </Group>
+
+      <SectionLabel>Scan bills</SectionLabel>
+      <ScanSettings onNotify={onNotify} />
 
       <SectionLabel>Share with friends</SectionLabel>
       <p className="mb-2 px-4 text-[13px] text-[var(--muted)]">

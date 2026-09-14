@@ -89,7 +89,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(dark ? 'light' : 'dark')}
-      className="pressable inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill)] text-[var(--text)]"
+      className="pressable inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--fill)] text-[var(--text)]"
       aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
       title={dark ? 'Dark' : 'Light'}
     >
@@ -140,7 +140,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'sheet-in relative z-10 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-[var(--bg-elevated)] sm:rounded-[28px]',
+          'sheet-in relative z-10 flex max-h-[min(92dvh,100%)] w-full min-h-0 flex-col overflow-hidden rounded-t-[28px] bg-[var(--bg-elevated)] sm:rounded-[28px]',
           wide ? 'sm:max-w-2xl' : 'sm:max-w-lg',
         )}
       >
@@ -165,7 +165,7 @@ export function Modal({
             <X size={18} strokeWidth={1.75} />
           </button>
         </div>
-        <div className="scrollbar-thin overflow-y-auto px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-1">
+        <div className="scrollbar-thin min-h-0 overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-1">
           {children}
         </div>
       </div>
@@ -291,7 +291,7 @@ export function Toast({ message }: { message: string }) {
 
 export function Screen({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('mx-auto min-h-dvh w-full max-w-[430px] px-4 pb-10 sm:max-w-2xl', className)}>
+    <div className={cn('mx-auto min-h-dvh w-full max-w-[430px] overflow-x-hidden px-4 pb-10 sm:max-w-2xl', className)}>
       {children}
     </div>
   )
