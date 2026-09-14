@@ -22,6 +22,8 @@ On your phone on the same Wi‑Fi, you can also use your computer’s LAN addres
 
 Until the site is deployed, a live invite copied from `localhost` only works on this computer.
 
+Live rooms use a public paste host so no account is required. Anyone with the link can edit. Rooms may expire if nobody opens them for a while — download JSON as a backup.
+
 Snapshot JSON export still works as a one-way backup.
 
 Production build:

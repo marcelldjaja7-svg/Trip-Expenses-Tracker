@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, Trip } from '../types'
 import { defaultCategories } from './demo'
-import { mergeTrips } from './sync'
+import { mergeTrips, parseShareParts } from './sync'
 
 function trip(over: Partial<Trip> & Pick<Trip, 'people' | 'expenses'>): Trip {
   return {
@@ -93,6 +93,16 @@ describe('mergeTrips', () => {
   })
 })
 
+describe('parseShareParts', () => {
+  it('reads a paste key and modification key', () => {
+    expect(parseShareParts('44Dzq9Q8kD.EttYHB0HaYl56IlBU0SLr3gn5fObvUGv')).toEqual({
+      key: '44Dzq9Q8kD',
+      mod: 'EttYHB0HaYl56IlBU0SLr3gn5fObvUGv',
+    })
+    expect(parseShareParts('nodot')).toBeNull()
+  })
+})
+
 describe('live room API', () => {
   it('creates and reads a trip room', async () => {
     const sample = trip({
@@ -101,13 +111,8 @@ describe('live room API', () => {
       expenses: [],
     })
     const { createLiveRoom, pullLiveTrip, pushLiveTrip } = await import('./sync')
-    let id: string
-    try {
-      id = await createLiveRoom(sample)
-    } catch (err) {
-      console.warn('live room API unavailable', err)
-      return
-    }
+    const id = await createLiveRoom(sample)
+    expect(id).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
     const loaded = await pullLiveTrip(id)
     expect(loaded?.name).toBe('API check')
     expect(loaded?.shareId).toBe(id)
@@ -118,13 +123,8 @@ describe('live room API', () => {
       updatedAt: Date.now(),
       expenses: [expense({ id: 'e-live', paidBy: 'a', amount: 25, updatedAt: Date.now() })],
     }
-    try {
-      await pushLiveTrip(id, withBill)
-    } catch (err) {
-      console.warn('live room update unavailable', err)
-      return
-    }
+    await pushLiveTrip(id, withBill)
     const again = await pullLiveTrip(id)
     expect(again?.expenses.map((e) => e.id)).toContain('e-live')
-  }, 20000)
+  }, 25000)
 })
