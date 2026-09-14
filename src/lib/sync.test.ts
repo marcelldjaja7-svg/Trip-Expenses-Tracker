@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Expense, Trip } from '../types'
 import { defaultCategories } from './demo'
-import { mergeTrips, parseShareParts } from './sync'
+import { mergeTrips } from './sync'
 
 function trip(over: Partial<Trip> & Pick<Trip, 'people' | 'expenses'>): Trip {
   return {
@@ -93,16 +93,6 @@ describe('mergeTrips', () => {
   })
 })
 
-describe('parseShareParts', () => {
-  it('reads a paste key and modification key', () => {
-    expect(parseShareParts('44Dzq9Q8kD.EttYHB0HaYl56IlBU0SLr3gn5fObvUGv')).toEqual({
-      key: '44Dzq9Q8kD',
-      mod: 'EttYHB0HaYl56IlBU0SLr3gn5fObvUGv',
-    })
-    expect(parseShareParts('nodot')).toBeNull()
-  })
-})
-
 describe('live room API', () => {
   it('creates and reads a trip room', async () => {
     const sample = trip({
@@ -112,7 +102,7 @@ describe('live room API', () => {
     })
     const { createLiveRoom, pullLiveTrip, pushLiveTrip } = await import('./sync')
     const id = await createLiveRoom(sample)
-    expect(id).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
+    expect(id.length).toBeGreaterThan(8)
     const loaded = await pullLiveTrip(id)
     expect(loaded?.name).toBe('API check')
     expect(loaded?.shareId).toBe(id)

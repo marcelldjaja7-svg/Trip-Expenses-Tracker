@@ -1,9 +1,9 @@
 import type { Trip } from '../types'
 import { normalizeTrip } from './storage'
 
-const API = 'https://bytebin.lucko.me'
+const SNAPSHOT = 'https://bytebin.lucko.me'
+const ROOM = 'https://api.restful-api.dev/objects'
 const TIMEOUT_MS = 10000
-const PUT_TIMEOUT_MS = 6000
 
 async function request(url: string, init: RequestInit, timeoutMs = TIMEOUT_MS): Promise<Response> {
   const controller = new AbortController()
@@ -24,38 +24,49 @@ async function request(url: string, init: RequestInit, timeoutMs = TIMEOUT_MS): 
   }
 }
 
-/** `pasteKey.modificationKey` so friends can both read and write. */
-export function parseShareParts(shareId: string): { key: string; mod: string } | null {
-  const i = shareId.indexOf('.')
-  if (i < 4 || i === shareId.length - 1) return null
-  const key = shareId.slice(0, i)
-  const mod = shareId.slice(i + 1)
-  if (!/^[\w-]+$/.test(key) || !/^[\w-]+$/.test(mod)) return null
-  return { key, mod }
+async function postSnapshot(trip: Trip): Promise<string> {
+  const res = await request(`${SNAPSHOT}/post`, {
+    method: 'POST',
+    body: JSON.stringify({ ...trip, isDemo: false }),
+  })
+  if (!res.ok) throw new Error('Could not sync trip')
+  const json = (await res.json()) as { key?: string }
+  if (!json.key) throw new Error('Could not sync trip')
+  return json.key
+}
+
+async function readSnapshot(bin: string): Promise<Trip | null> {
+  const res = await request(`${SNAPSHOT}/${encodeURIComponent(bin)}`, { method: 'GET' })
+  if (!res.ok) return null
+  return normalizeTrip(await res.json())
+}
+
+type Pointer = { id?: string; data?: { bin?: unknown }; bin?: unknown }
+
+function pointerBin(json: Pointer): string | null {
+  const bin = json.data && typeof json.data === 'object' ? json.data.bin : json.bin
+  return typeof bin === 'string' && bin.length > 3 ? bin : null
 }
 
 export async function createLiveRoom(trip: Trip): Promise<string> {
-  const res = await request(`${API}/post`, {
+  const bin = await postSnapshot(trip)
+  const res = await request(ROOM, {
     method: 'POST',
-    headers: { 'Allow-Modification': 'true' },
-    body: JSON.stringify({ ...trip, isDemo: false }),
+    body: JSON.stringify({ name: 'triptab', data: { bin } }),
   })
   if (!res.ok) throw new Error('Could not create a live trip')
-  const json = (await res.json()) as { key?: string }
-  const key = json.key || res.headers.get('location')
-  const mod = res.headers.get('modification-key')
-  if (!key || !mod) throw new Error('Could not create a live trip')
-  return `${key}.${mod}`
+  const json = (await res.json()) as Pointer
+  if (!json.id) throw new Error('Could not create a live trip')
+  return json.id
 }
 
 export async function pullLiveTrip(shareId: string): Promise<Trip | null> {
-  const parts = parseShareParts(shareId)
-  if (!parts) return null
   try {
-    const res = await request(`${API}/${encodeURIComponent(parts.key)}`, { method: 'GET' })
+    const res = await request(`${ROOM}/${encodeURIComponent(shareId)}`, { method: 'GET' })
     if (!res.ok) return null
-    const json: unknown = await res.json()
-    const trip = normalizeTrip(json)
+    const bin = pointerBin((await res.json()) as Pointer)
+    if (!bin) return null
+    const trip = await readSnapshot(bin)
     if (!trip) return null
     return { ...trip, shareId, isDemo: false }
   } catch {
@@ -64,28 +75,12 @@ export async function pullLiveTrip(shareId: string): Promise<Trip | null> {
 }
 
 export async function pushLiveTrip(shareId: string, trip: Trip): Promise<void> {
-  const parts = parseShareParts(shareId)
-  if (!parts) throw new Error('Could not sync trip')
-  const payload = JSON.stringify({ ...trip, shareId, isDemo: false })
-  try {
-    const res = await request(
-      `${API}/${encodeURIComponent(parts.key)}`,
-      {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${parts.mod}` },
-        body: payload,
-      },
-      PUT_TIMEOUT_MS,
-    )
-    if (res.status === 401 || res.status === 403) throw new Error('Could not sync trip')
-    if (!res.ok && res.status !== 504 && res.status !== 408) {
-      throw new Error('Could not sync trip')
-    }
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') return
-    if (error instanceof Error && /abort/i.test(error.message)) return
-    throw error
-  }
+  const bin = await postSnapshot({ ...trip, shareId })
+  const res = await request(`${ROOM}/${encodeURIComponent(shareId)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ name: 'triptab', data: { bin } }),
+  })
+  if (!res.ok) throw new Error('Could not sync trip')
 }
 
 function byId<T extends { id: string }>(items: T[]): Map<string, T> {
