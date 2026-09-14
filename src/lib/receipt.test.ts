@@ -1,0 +1,99 @@
+import { describe, expect, it } from 'vitest'
+import {
+  extractJsonObject,
+  guessCategoryId,
+  inferCurrency,
+  normalizeReceiptScan,
+  parseAmountValue,
+  parseScanDate,
+} from './receipt'
+import { defaultCategories } from './demo'
+
+const cats = defaultCategories()
+
+describe('parseAmountValue', () => {
+  it('reads IDR thousands dots', () => {
+    expect(parseAmountValue('88.000', 'IDR')).toBe(88000)
+    expect(parseAmountValue('Rp 150.000', 'IDR')).toBe(150000)
+  })
+
+  it('reads decimal currencies', () => {
+    expect(parseAmountValue('$12.50', 'USD')).toBe(12.5)
+    expect(parseAmountValue('1,234.50', 'USD')).toBe(1234.5)
+    expect(parseAmountValue('12,50', 'EUR')).toBe(12.5)
+  })
+
+  it('accepts numeric totals', () => {
+    expect(parseAmountValue(88000, 'IDR')).toBe(88000)
+  })
+})
+
+describe('inferCurrency', () => {
+  it('maps symbols and codes', () => {
+    expect(inferCurrency('Rp', 'USD')).toBe('IDR')
+    expect(inferCurrency('S$', 'IDR')).toBe('SGD')
+    expect(inferCurrency('eur', 'IDR')).toBe('EUR')
+    expect(inferCurrency('$', 'IDR')).toBe('USD')
+    expect(inferCurrency('$', 'SGD')).toBe('SGD')
+  })
+})
+
+describe('parseScanDate', () => {
+  it('accepts ISO and day-first dates in range', () => {
+    const now = new Date()
+    const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const dmy = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
+    expect(parseScanDate(iso)).toBe(iso)
+    expect(parseScanDate(dmy)).toBe(iso)
+  })
+
+  it('drops nonsense dates', () => {
+    expect(parseScanDate('1999-01-01')).toBeUndefined()
+  })
+})
+
+describe('guessCategoryId', () => {
+  it('guesses from merchant text', () => {
+    expect(guessCategoryId('Grab * Taxi', cats)).toBe('transport')
+    expect(guessCategoryId('Warung Nasi Goreng', cats)).toBe('food')
+    expect(guessCategoryId('Random place', cats, 'shopping')).toBe('shopping')
+  })
+})
+
+describe('normalizeReceiptScan', () => {
+  it('prefills amount, IDR, note, date, and category', () => {
+    const now = new Date()
+    const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const dmy = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
+    const scan = normalizeReceiptScan(
+      {
+        amount: '88.000',
+        currency: 'Rp',
+        merchant: 'Warung Made',
+        date: dmy,
+        category: 'food',
+        lineItems: [{ name: 'Nasi campur', amount: 45000 }],
+      },
+      { baseCurrency: 'IDR', categories: cats },
+    )
+    expect(scan.amount).toBe(88000)
+    expect(scan.currency).toBe('IDR')
+    expect(scan.note).toBe('Warung Made')
+    expect(scan.date).toBe(iso)
+    expect(scan.categoryId).toBe('food')
+    expect(scan.lineItems?.[0]?.name).toBe('Nasi campur')
+  })
+
+  it('falls back to trip base currency', () => {
+    const scan = normalizeReceiptScan({ amount: 20, merchant: 'Snack' }, { baseCurrency: 'IDR', categories: cats })
+    expect(scan.currency).toBe('IDR')
+    expect(scan.amount).toBe(20)
+  })
+})
+
+describe('extractJsonObject', () => {
+  it('reads fenced json', () => {
+    const json = extractJsonObject('```json\n{"amount": 9}\n```') as { amount: number }
+    expect(json.amount).toBe(9)
+  })
+})
