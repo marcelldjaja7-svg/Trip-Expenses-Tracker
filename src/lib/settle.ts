@@ -1,11 +1,18 @@
 import type { Expense, PersonBalance, Transfer, Trip } from '../types'
 import { currencyDecimals } from './currencies'
 import { expenseShares, fromMinor, toBaseMinor } from './money'
+import { uid } from './utils'
 
 const EPS = 1
 
-export function computeBalances(trip: Trip): PersonBalance[] {
-  const decimals = currencyDecimals(trip.baseCurrency)
+type MinorBalance = {
+  personId: string
+  paid: number
+  share: number
+  net: number
+}
+
+export function computeMinorBalances(trip: Trip): MinorBalance[] {
   const paid = new Map<string, number>()
   const share = new Map<string, number>()
   for (const person of trip.people) {
@@ -38,34 +45,35 @@ export function computeBalances(trip: Trip): PersonBalance[] {
   return trip.people.map((person) => {
     const p = paid.get(person.id) ?? 0
     const s = share.get(person.id) ?? 0
-    return {
-      personId: person.id,
-      paid: fromMinor(p, decimals),
-      share: fromMinor(s, decimals),
-      net: fromMinor(p - s, decimals),
-    }
+    return { personId: person.id, paid: p, share: s, net: p - s }
   })
+}
+
+export function computeBalances(trip: Trip): PersonBalance[] {
+  const decimals = currencyDecimals(trip.baseCurrency)
+  return computeMinorBalances(trip).map((b) => ({
+    personId: b.personId,
+    paid: fromMinor(b.paid, decimals),
+    share: fromMinor(b.share, decimals),
+    net: fromMinor(b.net, decimals),
+  }))
 }
 
 export function suggestedTransfers(trip: Trip): Transfer[] {
   const decimals = currencyDecimals(trip.baseCurrency)
-  const balances = computeBalances(trip).map((b) => ({
-    personId: b.personId,
-    minor: toRoundedMinor(b.net, decimals),
-  }))
+  const balances = computeMinorBalances(trip)
 
   const debtors = balances
-    .filter((b) => b.minor <= -EPS)
-    .map((b) => ({ personId: b.personId, remain: -b.minor }))
+    .filter((b) => b.net <= -EPS)
+    .map((b) => ({ personId: b.personId, remain: -b.net }))
     .sort((a, b) => b.remain - a.remain)
   const creditors = balances
-    .filter((b) => b.minor >= EPS)
-    .map((b) => ({ personId: b.personId, remain: b.minor }))
+    .filter((b) => b.net >= EPS)
+    .map((b) => ({ personId: b.personId, remain: b.net }))
     .sort((a, b) => b.remain - a.remain)
 
   const transfers: Transfer[] = []
 
-  // Prefer exact matches first to cut extra hops.
   for (let i = 0; i < debtors.length; i++) {
     const d = debtors[i]
     if (d.remain < EPS) continue
@@ -107,10 +115,6 @@ export function suggestedTransfers(trip: Trip): Transfer[] {
   return transfers
 }
 
-function toRoundedMinor(amount: number, decimals: number): number {
-  return Math.round(amount * 10 ** decimals)
-}
-
 export function settlementExpense(
   trip: Trip,
   fromId: string,
@@ -120,7 +124,7 @@ export function settlementExpense(
   const settlement =
     trip.categories.find((c) => c.id === 'settlement') ?? trip.categories[0]
   return {
-    id: crypto.randomUUID(),
+    id: uid(),
     amount,
     currency: trip.baseCurrency,
     paidBy: fromId,

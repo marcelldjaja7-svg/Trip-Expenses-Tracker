@@ -56,7 +56,7 @@ export function TripPage({ trip }: { trip: Trip }) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-28 pt-4 sm:pb-16 sm:pt-8">
+    <div className="mx-auto max-w-4xl px-4 pb-36 pt-4 sm:pb-16 sm:pt-8">
       <div className="mb-5 flex items-center justify-between gap-3">
         <button
           type="button"
@@ -203,9 +203,11 @@ export function TripPage({ trip }: { trip: Trip }) {
         <button
           type="button"
           onClick={openNew}
-          className="pressable fixed bottom-20 right-4 z-30 flex h-14 items-center gap-2 rounded-full bg-linear-to-br from-rose-500 to-amber-500 px-5 font-extrabold text-white shadow-xl shadow-rose-500/30 sm:bottom-8"
+          className="pressable fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center gap-2 rounded-full bg-linear-to-br from-rose-500 to-amber-500 font-extrabold text-white shadow-xl shadow-rose-500/30 sm:bottom-8 sm:w-auto sm:px-5"
+          aria-label="Add expense"
         >
-          <Plus size={20} /> Add expense
+          <Plus size={20} />
+          <span className="hidden sm:inline">Add expense</span>
         </button>
       )}
 

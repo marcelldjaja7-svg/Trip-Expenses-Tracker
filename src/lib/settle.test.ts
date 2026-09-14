@@ -197,4 +197,18 @@ describe('suggestedTransfers', () => {
     expect(Math.abs(sum)).toBeLessThan(0.05)
     expect(suggestedTransfers(createDemoTrip()).length).toBeGreaterThan(0)
   })
+
+  it('reconstructs each person net from suggested transfers', () => {
+    const t = createDemoTrip()
+    const nets = Object.fromEntries(computeBalances(t).map((b) => [b.personId, b.net]))
+    const reconstructed: Record<string, number> = {}
+    for (const id of Object.keys(nets)) reconstructed[id] = 0
+    for (const xfer of suggestedTransfers(t)) {
+      reconstructed[xfer.fromId] -= xfer.amount
+      reconstructed[xfer.toId] += xfer.amount
+    }
+    for (const id of Object.keys(nets)) {
+      expect(reconstructed[id]).toBeCloseTo(nets[id], 2)
+    }
+  })
 })
