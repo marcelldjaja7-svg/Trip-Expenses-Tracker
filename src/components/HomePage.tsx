@@ -48,7 +48,7 @@ export function HomePage() {
 
       <h1 className="large-title mt-2">Trips</h1>
       <p className="mt-1 max-w-md text-[15px] text-[var(--muted)]">
-        Split expenses with friends. Settle in IDR or any currency. Everything stays on this device.
+        Split expenses with friends. Settle in IDR or any currency. Invite them with a live link so everyone can add bills from their own phone.
       </p>
 
       <div className="mt-5 flex gap-2">

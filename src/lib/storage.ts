@@ -95,6 +95,10 @@ export function normalizeTrip(input: unknown): Trip | null {
     isDemo: Boolean(raw.isDemo),
     createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : Date.now(),
     updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : Date.now(),
+    shareId: typeof raw.shareId === 'string' ? raw.shareId : undefined,
+    deletedExpenseIds: Array.isArray(raw.deletedExpenseIds)
+      ? raw.deletedExpenseIds.filter((id): id is string => typeof id === 'string')
+      : undefined,
   }
 }
 
@@ -165,5 +169,6 @@ function normalizeExpense(
     note: typeof raw.note === 'string' ? raw.note : '',
     date: typeof raw.date === 'string' ? raw.date : '',
     createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : Date.now(),
+    updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : undefined,
   }
 }

@@ -186,7 +186,8 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
   return (
     <input
       className={cn(
-        'w-full rounded-xl bg-[var(--grouped)] px-3.5 py-[11px] text-[17px] outline-none ring-[var(--accent)] focus:ring-2 dark:bg-[var(--grouped-2)]',
+        'min-w-0 rounded-xl bg-[var(--grouped)] px-3.5 py-[11px] text-[17px] outline-none ring-[var(--accent)] focus:ring-2 dark:bg-[var(--grouped-2)]',
+        !className?.match(/(?:^|\s)w-/) && 'w-full',
         className,
       )}
       {...props}
@@ -198,7 +199,8 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
   return (
     <select
       className={cn(
-        'w-full appearance-none rounded-xl bg-[var(--grouped)] px-3.5 py-[11px] text-[17px] outline-none ring-[var(--accent)] focus:ring-2 dark:bg-[var(--grouped-2)]',
+        'min-w-0 appearance-none rounded-xl bg-[var(--grouped)] px-3.5 py-[11px] text-[17px] outline-none ring-[var(--accent)] focus:ring-2 dark:bg-[var(--grouped-2)]',
+        !className?.match(/(?:^|\s)w-/) && 'w-full',
         className,
       )}
       {...props}
@@ -268,7 +270,7 @@ export function Segmented({
           className={cn(
             'rounded-[7px] py-1.5 text-[13px] font-semibold transition-[background,color,box-shadow] duration-200',
             value === opt.id
-              ? 'bg-[var(--bg-elevated)] text-[var(--text)] shadow-sm dark:bg-[var(--grouped-2)]'
+              ? 'bg-white text-black shadow-sm dark:bg-[var(--grouped-3)] dark:text-white'
               : 'text-[var(--muted)]',
           )}
         >

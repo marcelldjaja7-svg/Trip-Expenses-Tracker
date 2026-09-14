@@ -1,4 +1,4 @@
-import { Copy, Download, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { Copy, Download, RefreshCw, Share, Trash2, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PERSON_COLORS, TRIP_EMOJIS } from '../lib/colors'
 import { convertRatesToNewBase, CURRENCIES, fetchLiveRates } from '../lib/currencies'
@@ -6,6 +6,7 @@ import { inverseRate, roundTo } from '../lib/money'
 import { downloadJson, shareUrlForTrip, slugify, tripSummaryText } from '../lib/share'
 import { normalizeAppData, normalizeTrip } from '../lib/storage'
 import { cn, uid } from '../lib/utils'
+import { useStore } from '../state'
 import type { Trip } from '../types'
 import { Avatar, Group, GroupRow, SectionLabel, Select, TextInput } from './ui'
 
@@ -20,6 +21,7 @@ export function TripSettings({
   onDeleteTrip: () => void
   onNotify: (message: string) => void
 }) {
+  const { shareWithFriends } = useStore()
   const [fetching, setFetching] = useState(false)
   const [newFriend, setNewFriend] = useState('')
   const [newCat, setNewCat] = useState('')
@@ -316,15 +318,26 @@ export function TripSettings({
           })}
       </Group>
 
-      <SectionLabel>Share & backup</SectionLabel>
+      <SectionLabel>Share with friends</SectionLabel>
+      <p className="mb-2 px-4 text-[13px] text-[var(--muted)]">
+        Send a live link. Anyone who opens it can add expenses on their own phone. Anyone with the link can edit.
+      </p>
       <Group>
+        <GroupRow
+          onClick={() => {
+            void shareWithFriends(trip)
+          }}
+        >
+          <Share size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
+          <span className="flex-1 text-[17px]">{trip.shareId ? 'Invite Friends' : 'Start Live Trip'}</span>
+        </GroupRow>
         <GroupRow onClick={() => void copySummary()}>
           <Copy size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
           <span className="flex-1 text-[17px]">Copy Summary</span>
         </GroupRow>
         <GroupRow onClick={() => void copyLink()}>
           <Copy size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
-          <span className="flex-1 text-[17px]">Copy Share Link</span>
+          <span className="flex-1 text-[17px]">Copy Snapshot Link</span>
         </GroupRow>
         <GroupRow onClick={() => downloadJson(`${slugify(trip.name)}.triptab.json`, trip)}>
           <Download size={16} strokeWidth={1.75} className="text-[var(--accent)]" />

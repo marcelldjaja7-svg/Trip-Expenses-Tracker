@@ -4,7 +4,11 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // Relative assets for local/LAN; absolute repo path on GitHub Pages so ?t= invite links resolve.
+  base: process.env.GITHUB_PAGES ? '/Trip-Expenses-Tracker/' : './',
   plugins: [react(), tailwindcss()],
+  server: { host: true },
+  preview: { host: true },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

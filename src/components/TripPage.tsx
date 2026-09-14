@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Receipt, Scale, Settings2 } from 'lucide-react'
+import { ArrowLeft, Plus, Receipt, Scale, Settings2, Share } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { convertedLabel, formatMoney, isSettlement, splitLabel, tripTotalBase } from '../lib/money'
 import { cn } from '../lib/utils'
@@ -12,7 +12,7 @@ import { Avatar, Button, Chevron, Group, GroupRow, Screen, SectionLabel } from '
 type Tab = 'expenses' | 'settle' | 'settings'
 
 export function TripPage({ trip }: { trip: Trip }) {
-  const { selectTrip, saveTrip, deleteTrip, notify } = useStore()
+  const { selectTrip, saveTrip, deleteTrip, notify, shareWithFriends } = useStore()
   const [tab, setTab] = useState<Tab>('expenses')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
@@ -44,8 +44,8 @@ export function TripPage({ trip }: { trip: Trip }) {
       ...trip,
       rates,
       expenses: exists
-        ? trip.expenses.map((e) => (e.id === expense.id ? expense : e))
-        : [expense, ...trip.expenses],
+        ? trip.expenses.map((e) => (e.id === expense.id ? { ...expense, updatedAt: Date.now() } : e))
+        : [{ ...expense, updatedAt: Date.now() }, ...trip.expenses],
     })
     setFormOpen(false)
     setEditing(null)
@@ -68,18 +68,28 @@ export function TripPage({ trip }: { trip: Trip }) {
           <TabBtn on={tab === 'settle'} onClick={() => setTab('settle')} icon={<Scale size={15} strokeWidth={1.75} />} label="Settle" compact />
           <TabBtn on={tab === 'settings'} onClick={() => setTab('settings')} icon={<Settings2 size={15} strokeWidth={1.75} />} label="Trip" compact />
         </div>
-        {tab !== 'settings' ? (
+        <div className="mr-1 flex items-center gap-1">
           <button
             type="button"
-            onClick={openNew}
-            className="pressable mr-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white"
-            aria-label="Add expense"
+            onClick={() => void shareWithFriends(trip)}
+            className="pressable inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--fill)] text-[var(--accent)]"
+            aria-label="Invite friends"
           >
-            <Plus size={18} strokeWidth={2.25} />
+            <Share size={16} strokeWidth={2} />
           </button>
-        ) : (
-          <span className="w-9" />
-        )}
+          {tab !== 'settings' ? (
+            <button
+              type="button"
+              onClick={openNew}
+              className="pressable inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent)] text-white"
+              aria-label="Add expense"
+            >
+              <Plus size={18} strokeWidth={2.25} />
+            </button>
+          ) : (
+            <span className="w-9" />
+          )}
+        </div>
       </div>
 
       <header className="pt-1">
@@ -96,6 +106,11 @@ export function TripPage({ trip }: { trip: Trip }) {
               {' · '}
               {trip.baseCurrency}
             </p>
+            {trip.shareId && (
+              <p className="mt-2 inline-flex items-center rounded-full bg-[var(--accent)]/15 px-2.5 py-1 text-[12px] font-semibold text-[var(--accent)]">
+                Live · friends can add expenses
+              </p>
+            )}
           </div>
         </div>
 
@@ -236,7 +251,11 @@ export function TripPage({ trip }: { trip: Trip }) {
           }}
           onSave={saveExpense}
           onDelete={(id) => {
-            saveTrip({ ...trip, expenses: trip.expenses.filter((e) => e.id !== id) })
+            saveTrip({
+              ...trip,
+              expenses: trip.expenses.filter((e) => e.id !== id),
+              deletedExpenseIds: [...new Set([...(trip.deletedExpenseIds ?? []), id])],
+            })
             setFormOpen(false)
             setEditing(null)
             notify('Expense deleted')
@@ -270,7 +289,7 @@ function TabBtn({
           ? 'px-3 py-1.5 text-[13px]'
           : 'min-w-[4.5rem] flex-col gap-0.5 px-3 py-1 text-[10px]',
         on ? 'text-[var(--accent)]' : 'text-[var(--muted)]',
-        compact && on && 'bg-[var(--bg-elevated)] text-[var(--text)] shadow-sm dark:bg-[var(--grouped-2)]',
+        compact && on && 'bg-white text-black shadow-sm dark:bg-[var(--grouped-3)] dark:text-white',
       )}
     >
       {icon}

@@ -27,6 +27,7 @@ export type Expense = {
   note: string
   date: string
   createdAt: number
+  updatedAt?: number
 }
 
 export type Trip = {
@@ -45,6 +46,9 @@ export type Trip = {
   isDemo?: boolean
   createdAt: number
   updatedAt: number
+  /** Public room id so friends can add expenses from another phone. */
+  shareId?: string
+  deletedExpenseIds?: string[]
 }
 
 export type AppData = {
