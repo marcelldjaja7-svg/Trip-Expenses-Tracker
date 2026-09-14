@@ -283,7 +283,7 @@ export function Segmented({
 
 export function Toast({ message }: { message: string }) {
   return (
-    <div className="fade-up pointer-events-none fixed bottom-[max(2rem,env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#1c1c1e] px-4 py-2 text-[15px] font-semibold text-white shadow-lg dark:bg-white dark:text-black">
+    <div className="fade-up pointer-events-none fixed bottom-[max(5.25rem,calc(env(safe-area-inset-bottom)+4.25rem))] left-1/2 z-[60] -translate-x-1/2 rounded-full bg-[#1c1c1e] px-4 py-2 text-[15px] font-semibold text-white shadow-lg sm:bottom-[max(2rem,env(safe-area-inset-bottom))] dark:bg-white dark:text-black">
       {message}
     </div>
   )

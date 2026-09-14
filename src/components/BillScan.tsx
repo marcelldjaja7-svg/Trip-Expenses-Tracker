@@ -73,7 +73,7 @@ export function BillScanPanel({
           <div className="min-w-0 flex-1">
             <p className="text-[17px] font-medium">Scan bill</p>
             <p className="mt-0.5 text-[13px] text-[var(--muted)]">
-              Photo or library. Check every field before saving.
+              Photo or your camera roll. Check every field before saving.
             </p>
           </div>
         </GroupRow>
