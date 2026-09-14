@@ -1,7 +1,7 @@
 import { Download, Palmtree, Plus, Sparkles, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { TRIP_EMOJIS } from '../lib/colors'
-import { CURRENCIES } from '../lib/currencies'
+import { CURRENCIES, DEFAULT_BASE_CURRENCY } from '../lib/currencies'
 import { formatMoney, tripTotalBase } from '../lib/money'
 import { downloadJson } from '../lib/share'
 import { cn, todayISO } from '../lib/utils'
@@ -142,7 +142,7 @@ function NewTripModal({
 }) {
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🏝️')
-  const [baseCurrency, setBaseCurrency] = useState('USD')
+  const [baseCurrency, setBaseCurrency] = useState(DEFAULT_BASE_CURRENCY)
   const [startDate, setStartDate] = useState(todayISO())
   const [endDate, setEndDate] = useState('')
   const [people, setPeople] = useState(['', ''])
@@ -196,6 +196,7 @@ function NewTripModal({
               </option>
             ))}
           </Select>
+          <p className="text-xs font-semibold text-[var(--muted)]">You’ll settle up in this currency. IDR is the default.</p>
         </Field>
         <div>
           <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Friends on the trip</p>

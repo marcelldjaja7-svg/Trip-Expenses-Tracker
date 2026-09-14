@@ -1,6 +1,6 @@
 import { ArrowLeft, Plus, Receipt, Scale, Settings2 } from 'lucide-react'
 import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-import { convertedLabel, formatMoney, isSettlement, tripTotalBase } from '../lib/money'
+import { convertedLabel, formatMoney, isSettlement, splitLabel, tripTotalBase } from '../lib/money'
 import { cn } from '../lib/utils'
 import { useStore } from '../state'
 import type { Expense, Trip } from '../types'
@@ -153,7 +153,7 @@ export function TripPage({ trip }: { trip: Trip }) {
                               {payer && <Avatar person={payer} size="sm" />}
                               {payer ? `${payer.name} paid` : 'Paid'}
                               {' · '}
-                              {expense.splitMode === 'custom' ? 'custom split' : `${splitPeople.length} ways`}
+                              {splitLabel(expense.splitMode, splitPeople.length, trip.people.length)}
                             </span>
                           </span>
                           <span className="text-right">

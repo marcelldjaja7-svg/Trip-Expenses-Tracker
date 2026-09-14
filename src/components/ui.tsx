@@ -71,18 +71,17 @@ export function AvatarStack({ people }: { people: Person[] }) {
 
 export function ThemeToggle() {
   const { data, setTheme } = useStore()
-  const next = data.theme === 'dark' ? 'light' : data.theme === 'light' ? 'system' : 'dark'
-  const label = data.theme === 'system' ? 'System' : data.theme === 'dark' ? 'Dark' : 'Light'
+  const dark = data.theme !== 'light'
   return (
     <button
       type="button"
-      onClick={() => setTheme(next)}
+      onClick={() => setTheme(dark ? 'light' : 'dark')}
       className="pressable inline-flex items-center gap-2 rounded-2xl border border-[var(--line)] bg-white/50 px-3 py-2 text-sm font-bold dark:bg-white/10"
-      aria-label={`Theme: ${label}. Click to switch.`}
-      title={`Theme: ${label}`}
+      aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={dark ? 'Dark' : 'Light'}
     >
-      {data.theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-      <span className="hidden sm:inline">{label}</span>
+      {dark ? <Moon size={16} /> : <Sun size={16} />}
+      <span className="hidden sm:inline">{dark ? 'Dark' : 'Light'}</span>
     </button>
   )
 }

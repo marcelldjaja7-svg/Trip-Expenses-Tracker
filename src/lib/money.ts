@@ -1,5 +1,5 @@
+import type { Expense, SplitMode, Trip } from '../types'
 import { currencyDecimals } from './currencies'
-import type { Expense, Trip } from '../types'
 
 export function roundTo(amount: number, decimals: number): number {
   const f = 10 ** decimals
@@ -16,8 +16,9 @@ export function fromMinor(minor: number, decimals: number): number {
 
 export function formatMoney(amount: number, currency: string): string {
   const decimals = currencyDecimals(currency)
+  const locale = currency === 'IDR' ? 'id-ID' : 'en-US'
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
       minimumFractionDigits: decimals,
@@ -33,7 +34,7 @@ export function formatCompact(amount: number, currency: string): string {
   const decimals = currencyDecimals(currency)
   const n = roundTo(amount, decimals)
   try {
-    const nf = new Intl.NumberFormat('en-US', {
+    const nf = new Intl.NumberFormat(currency === 'IDR' ? 'id-ID' : 'en-US', {
       style: 'currency',
       currency,
       currencyDisplay: 'narrowSymbol',
@@ -86,6 +87,50 @@ export function equalShares(
   return out
 }
 
+/** Percentages that sum to 100.00, remainder in hundredths. */
+export function equalPercents(participantIds: string[]): Record<string, number> {
+  const n = participantIds.length
+  if (n === 0) return {}
+  const totalMinor = 10_000
+  const base = Math.floor(totalMinor / n)
+  let rem = totalMinor - base * n
+  const out: Record<string, number> = {}
+  participantIds.forEach((id, i) => {
+    out[id] = fromMinor(base + (i < rem ? 1 : 0), 2)
+  })
+  return out
+}
+
+export function percentsMatch100(percents: Record<string, number>, participantIds: string[]): boolean {
+  const sum = participantIds.reduce((s, id) => s + toMinor(percents[id] ?? 0, 2), 0)
+  return sum === 10_000
+}
+
+export function percentToAmounts(
+  amount: number,
+  percents: Record<string, number>,
+  participantIds: string[],
+  currency: string,
+): Record<string, number> {
+  const decimals = currencyDecimals(currency)
+  const totalMinor = toMinor(amount, decimals)
+  let allocated = 0
+  const out: Record<string, number> = {}
+  participantIds.forEach((id, index) => {
+    const last = index === participantIds.length - 1
+    const pct = percents[id] ?? 0
+    let minor: number
+    if (last) {
+      minor = totalMinor - allocated
+    } else {
+      minor = Math.round((pct / 100) * totalMinor)
+      allocated += minor
+    }
+    out[id] = fromMinor(minor, decimals)
+  })
+  return out
+}
+
 export function expenseShares(expense: Expense): Record<string, number> {
   if (expense.splitMode === 'custom' && expense.shares) {
     const out: Record<string, number> = {}
@@ -93,6 +138,9 @@ export function expenseShares(expense: Expense): Record<string, number> {
       out[id] = expense.shares[id] ?? 0
     }
     return out
+  }
+  if (expense.splitMode === 'percent' && expense.shares) {
+    return percentToAmounts(expense.amount, expense.shares, expense.participantIds, expense.currency)
   }
   return equalShares(expense.amount, expense.participantIds, expense.currency)
 }
@@ -128,4 +176,11 @@ export function convertedLabel(trip: Trip, amount: number, currency: string): st
 export function isSettlement(trip: Trip, expense: Expense): boolean {
   const cat = trip.categories.find((c) => c.id === expense.categoryId)
   return cat?.id === 'settlement' || cat?.name.toLowerCase() === 'settle up'
+}
+
+export function splitLabel(mode: SplitMode, included: number, totalPeople: number): string {
+  const who = included === totalPeople ? `${included} ways` : `${included} of ${totalPeople}`
+  if (mode === 'custom') return `unequal · ${who}`
+  if (mode === 'percent') return `% split · ${who}`
+  return who
 }

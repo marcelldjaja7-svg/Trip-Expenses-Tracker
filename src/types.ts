@@ -1,6 +1,6 @@
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark'
 
-export type SplitMode = 'equal' | 'custom'
+export type SplitMode = 'equal' | 'custom' | 'percent'
 
 export type Person = {
   id: string
@@ -20,7 +20,7 @@ export type Expense = {
   currency: string
   paidBy: string
   participantIds: string[]
-  /** Custom amounts in the expense currency. Required when splitMode is custom. */
+  /** Custom amounts (custom mode) or percentages 0–100 (percent mode). */
   shares?: Record<string, number>
   splitMode: SplitMode
   categoryId: string

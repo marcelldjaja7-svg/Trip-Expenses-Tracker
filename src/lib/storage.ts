@@ -1,5 +1,5 @@
 import type { AppData, Category, Expense, Person, Trip } from '../types'
-import { CURRENCY_CODES, ratesForBase } from './currencies'
+import { CURRENCY_CODES, DEFAULT_BASE_CURRENCY, ratesForBase } from './currencies'
 import { defaultCategories } from './demo'
 
 export const STORAGE_KEY = 'triptab.v1'
@@ -7,7 +7,7 @@ export const STORAGE_KEY = 'triptab.v1'
 export function defaultAppData(): AppData {
   return {
     version: 1,
-    theme: 'system',
+    theme: 'dark',
     currentTripId: null,
     trips: [],
   }
@@ -37,13 +37,13 @@ export function normalizeAppData(input: unknown): AppData | null {
     if (isTripLike(raw)) {
       const trip = normalizeTrip(raw)
       return trip
-        ? { version: 1, theme: 'system', currentTripId: trip.id, trips: [trip] }
+        ? { version: 1, theme: 'dark', currentTripId: trip.id, trips: [trip] }
         : null
     }
     return null
   }
   const trips = tripsIn.map(normalizeTrip).filter((t): t is Trip => Boolean(t))
-  const theme = raw.theme === 'light' || raw.theme === 'dark' || raw.theme === 'system' ? raw.theme : 'system'
+  const theme = raw.theme === 'light' ? 'light' : 'dark'
   const currentTripId = typeof raw.currentTripId === 'string' ? raw.currentTripId : trips[0]?.id ?? null
   return { version: 1, theme, currentTripId, trips }
 }
@@ -68,7 +68,7 @@ export function normalizeTrip(input: unknown): Trip | null {
   const baseCurrency =
     typeof raw.baseCurrency === 'string' && raw.baseCurrency.length === 3
       ? raw.baseCurrency.toUpperCase()
-      : 'USD'
+      : DEFAULT_BASE_CURRENCY
   const ratesRaw = raw.rates && typeof raw.rates === 'object' ? (raw.rates as Record<string, unknown>) : {}
   const rates = { ...ratesForBase(baseCurrency) }
   for (const [code, value] of Object.entries(ratesRaw)) {
@@ -138,7 +138,7 @@ function normalizeExpense(
   const currency =
     typeof raw.currency === 'string' && raw.currency.length === 3
       ? raw.currency.toUpperCase()
-      : 'USD'
+      : DEFAULT_BASE_CURRENCY
   const categoryId =
     typeof raw.categoryId === 'string' && categories.some((c) => c.id === raw.categoryId)
       ? raw.categoryId
@@ -151,14 +151,15 @@ function normalizeExpense(
             .map(([id, n]) => [id, n as number]),
         )
       : undefined
+  const splitMode = raw.splitMode === 'custom' || raw.splitMode === 'percent' ? raw.splitMode : 'equal'
   return {
     id: typeof raw.id === 'string' ? raw.id : crypto.randomUUID(),
     amount,
-    currency: CURRENCY_CODES.includes(currency) || currency.length === 3 ? currency : 'USD',
+    currency: CURRENCY_CODES.includes(currency) || currency.length === 3 ? currency : DEFAULT_BASE_CURRENCY,
     paidBy,
     participantIds,
     shares,
-    splitMode: raw.splitMode === 'custom' ? 'custom' : 'equal',
+    splitMode,
     categoryId,
     note: typeof raw.note === 'string' ? raw.note : '',
     date: typeof raw.date === 'string' ? raw.date : '',

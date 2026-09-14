@@ -33,27 +33,24 @@ type StoreValue = {
 const StoreContext = createContext<StoreValue | null>(null)
 
 function applyTheme(theme: Theme) {
-  const dark =
-    theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const dark = theme !== 'light'
   document.documentElement.classList.toggle('dark', dark)
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#120f0d' : '#f4ece1')
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(() => loadAppData())
+  const [data, setData] = useState<AppData>(() => {
+    const loaded = loadAppData()
+    applyTheme(loaded.theme)
+    return loaded
+  })
   const [toast, setToast] = useState<Toast | null>(null)
 
   useEffect(() => {
     saveAppData(data)
     applyTheme(data.theme)
   }, [data])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const onChange = () => applyTheme(data.theme)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [data.theme])
 
   useEffect(() => {
     const shared = parseImportFromLocation()

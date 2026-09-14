@@ -106,6 +106,38 @@ describe('computeBalances', () => {
     expect(nets[a]).toBeCloseTo(60)
     expect(nets[b]).toBeCloseTo(-60)
   })
+
+  it('honors percent shares and exclusions', () => {
+    const a = 'a'
+    const b = 'b'
+    const c = 'c'
+    const t = trip({
+      people: [
+        { id: a, name: 'A', color: '#000' },
+        { id: b, name: 'B', color: '#111' },
+        { id: c, name: 'C', color: '#222' },
+      ],
+      expenses: [
+        {
+          id: 'e1',
+          amount: 100,
+          currency: 'USD',
+          paidBy: a,
+          participantIds: [a, b],
+          splitMode: 'percent',
+          shares: { [a]: 70, [b]: 30 },
+          categoryId: 'food',
+          note: '',
+          date: '2026-09-01',
+          createdAt: 1,
+        },
+      ],
+    })
+    const nets = Object.fromEntries(computeBalances(t).map((x) => [x.personId, x.net]))
+    expect(nets[a]).toBeCloseTo(30)
+    expect(nets[b]).toBeCloseTo(-30)
+    expect(nets[c]).toBeCloseTo(0)
+  })
 })
 
 describe('suggestedTransfers', () => {

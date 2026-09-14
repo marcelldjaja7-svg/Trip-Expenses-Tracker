@@ -1,8 +1,17 @@
 import { useMemo, useState } from 'react'
 import { CURRENCIES } from '../lib/currencies'
-import { equalShares, formatMoney, roundTo, sharesMatchTotal } from '../lib/money'
+import {
+  equalPercents,
+  equalShares,
+  formatMoney,
+  percentToAmounts,
+  percentsMatch100,
+  roundTo,
+  sharesMatchTotal,
+  sharesSum,
+} from '../lib/money'
 import { cn, todayISO, uid } from '../lib/utils'
-import type { Expense, Trip } from '../types'
+import type { Expense, SplitMode, Trip } from '../types'
 import { Avatar, Button, Field, Modal, Select, TextInput } from './ui'
 
 type Props = {
@@ -14,6 +23,12 @@ type Props = {
   onDelete?: (id: string) => void
 }
 
+const SPLIT_TABS: { id: SplitMode; label: string }[] = [
+  { id: 'equal', label: 'Equal' },
+  { id: 'custom', label: 'Amounts' },
+  { id: 'percent', label: '%' },
+]
+
 export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: Props) {
   const editing = Boolean(expense)
   const [amount, setAmount] = useState(expense ? String(expense.amount) : '')
@@ -22,9 +37,15 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
   const [participants, setParticipants] = useState<string[]>(
     expense?.participantIds ?? trip.people.map((p) => p.id),
   )
-  const [splitMode, setSplitMode] = useState<'equal' | 'custom'>(expense?.splitMode ?? 'equal')
-  const [shares, setShares] = useState<Record<string, string>>(() => {
+  const [splitMode, setSplitMode] = useState<SplitMode>(expense?.splitMode ?? 'equal')
+  const [amountShares, setAmountShares] = useState<Record<string, string>>(() => {
     if (expense?.splitMode === 'custom' && expense.shares) {
+      return Object.fromEntries(Object.entries(expense.shares).map(([k, v]) => [k, String(v)]))
+    }
+    return {}
+  })
+  const [percentShares, setPercentShares] = useState<Record<string, string>>(() => {
+    if (expense?.splitMode === 'percent' && expense.shares) {
       return Object.fromEntries(Object.entries(expense.shares).map(([k, v]) => [k, String(v)]))
     }
     return {}
@@ -55,14 +76,31 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
     return equalShares(parsedAmount, participants, currency)
   }, [parsedAmount, participants, currency])
 
-  const customShares = useMemo(() => {
+  const parsedAmounts = useMemo(() => {
     const out: Record<string, number> = {}
     for (const id of participants) {
-      const n = Number(shares[id])
+      const n = Number(amountShares[id])
       out[id] = Number.isFinite(n) ? n : 0
     }
     return out
-  }, [participants, shares])
+  }, [participants, amountShares])
+
+  const parsedPercents = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const id of participants) {
+      const n = Number(percentShares[id])
+      out[id] = Number.isFinite(n) ? n : 0
+    }
+    return out
+  }, [participants, percentShares])
+
+  const percentAmounts = useMemo(() => {
+    if (!Number.isFinite(parsedAmount) || participants.length === 0) return {}
+    return percentToAmounts(parsedAmount, parsedPercents, participants, currency)
+  }, [parsedAmount, parsedPercents, participants, currency])
+
+  const amountLeft = Number.isFinite(parsedAmount) ? parsedAmount - sharesSum(parsedAmounts) : 0
+  const percentLeft = 100 - sharesSum(parsedPercents)
 
   const togglePerson = (id: string) => {
     setParticipants((prev) => {
@@ -74,8 +112,19 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
     })
   }
 
-  const fillEqual = () => {
-    setShares(Object.fromEntries(Object.entries(equal).map(([k, v]) => [k, String(v)])))
+  const fillEqualAmounts = (ids: string[] = participants) => {
+    if (!Number.isFinite(parsedAmount) || ids.length === 0) return
+    setAmountShares(Object.fromEntries(Object.entries(equalShares(parsedAmount, ids, currency)).map(([k, v]) => [k, String(v)])))
+  }
+
+  const fillEqualPercents = (ids: string[] = participants) => {
+    setPercentShares(Object.fromEntries(Object.entries(equalPercents(ids)).map(([k, v]) => [k, String(v)])))
+  }
+
+  const setMode = (mode: SplitMode) => {
+    setSplitMode(mode)
+    if (mode === 'custom') fillEqualAmounts()
+    if (mode === 'percent') fillEqualPercents()
   }
 
   const submit = () => {
@@ -89,11 +138,15 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
       return
     }
     if (participants.length === 0) {
-      setError('Pick at least one person sharing this.')
+      setError('Include at least one person on this bill.')
       return
     }
-    if (splitMode === 'custom' && !sharesMatchTotal(customShares, parsedAmount, currency)) {
-      setError(`Custom shares must add up to ${formatMoney(parsedAmount, currency)}.`)
+    if (splitMode === 'custom' && !sharesMatchTotal(parsedAmounts, parsedAmount, currency)) {
+      setError(`Amounts must add up to ${formatMoney(parsedAmount, currency)}.`)
+      return
+    }
+    if (splitMode === 'percent' && !percentsMatch100(parsedPercents, participants)) {
+      setError('Percentages must add up to 100%.')
       return
     }
     if (currency !== trip.baseCurrency && (!Number.isFinite(rate) || rate <= 0)) {
@@ -107,16 +160,13 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
       paidBy,
       participantIds: participants,
       splitMode,
-      shares: splitMode === 'custom' ? customShares : undefined,
+      shares: splitMode === 'custom' ? parsedAmounts : splitMode === 'percent' ? parsedPercents : undefined,
       categoryId,
       note: note.trim(),
       date,
       createdAt: expense?.createdAt ?? Date.now(),
     }
-    onSave(
-      next,
-      currency === trip.baseCurrency ? undefined : { currency, rate },
-    )
+    onSave(next, currency === trip.baseCurrency ? undefined : { currency, rate })
   }
 
   return (
@@ -131,7 +181,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                placeholder="0"
                 autoFocus
               />
             </Field>
@@ -177,10 +227,6 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
             </div>
           )}
 
-          {currency === trip.baseCurrency && converted !== null && (
-            <p className="text-sm text-[var(--muted)]">Saved in {trip.baseCurrency}.</p>
-          )}
-
           <Field label="Date">
             <TextInput type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
@@ -210,77 +256,127 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Split with</p>
-            <div className="flex flex-wrap gap-2">
+            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Split the bill</p>
+            <div className="grid grid-cols-3 rounded-2xl bg-black/5 p-1 dark:bg-white/10">
+              {SPLIT_TABS.map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  onClick={() => setMode(tab.id)}
+                  className={cn(
+                    'rounded-xl py-2 text-sm font-extrabold',
+                    splitMode === tab.id ? 'bg-rose-500 text-white shadow' : 'text-[var(--muted)]',
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs font-semibold text-[var(--muted)]">
+              Tap In / Out to leave someone off this expense.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                className="rounded-full bg-black/5 px-3 py-1 text-xs font-extrabold dark:bg-white/10"
+                onClick={() => {
+                  const ids = trip.people.map((p) => p.id)
+                  setParticipants(ids)
+                  if (splitMode === 'custom') fillEqualAmounts(ids)
+                  if (splitMode === 'percent') fillEqualPercents(ids)
+                }}
+              >
+                Everyone
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-black/5 px-3 py-1 text-xs font-extrabold dark:bg-white/10"
+                onClick={() => {
+                  if (!paidBy) return
+                  setParticipants([paidBy])
+                  if (splitMode === 'custom') fillEqualAmounts([paidBy])
+                  if (splitMode === 'percent') fillEqualPercents([paidBy])
+                }}
+              >
+                Just payer
+              </button>
+            </div>
+
+            <div className="mt-3 divide-y divide-[var(--line)] overflow-hidden rounded-2xl border border-[var(--line)]">
               {trip.people.map((p) => {
                 const on = participants.includes(p.id)
                 return (
-                  <button
-                    type="button"
+                  <div
                     key={p.id}
-                    onClick={() => togglePerson(p.id)}
-                    data-on={on}
-                    className={cn(
-                      'chip flex items-center gap-2 rounded-full border px-2 py-1.5 pr-3 text-sm font-bold',
-                      on ? 'border-transparent text-white shadow' : 'border-[var(--line)] bg-white/70 dark:bg-white/10',
-                    )}
-                    style={on ? { background: p.color } : undefined}
+                    className={cn('flex flex-wrap items-center gap-2 px-3 py-2.5', !on && 'opacity-50')}
                   >
                     <Avatar person={p} size="sm" />
-                    {p.name}
-                  </button>
+                    <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{p.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => togglePerson(p.id)}
+                      className={cn(
+                        'rounded-full px-3 py-1 text-xs font-extrabold',
+                        on ? 'bg-teal-500 text-white' : 'bg-black/10 dark:bg-white/10',
+                      )}
+                    >
+                      {on ? 'In' : 'Out'}
+                    </button>
+                    {on && splitMode === 'equal' && Number.isFinite(parsedAmount) && (
+                      <span className="w-full text-right text-sm font-bold text-[var(--muted)] sm:w-auto">
+                        {formatMoney(equal[p.id] ?? 0, currency)}
+                      </span>
+                    )}
+                    {on && splitMode === 'custom' && (
+                      <TextInput
+                        inputMode="decimal"
+                        className="w-28 py-2 text-right"
+                        value={amountShares[p.id] ?? ''}
+                        onChange={(e) => setAmountShares((s) => ({ ...s, [p.id]: e.target.value }))}
+                        placeholder="0"
+                        aria-label={`${p.name} amount`}
+                      />
+                    )}
+                    {on && splitMode === 'percent' && (
+                      <div className="flex items-center gap-1">
+                        <TextInput
+                          inputMode="decimal"
+                          className="w-20 py-2 text-right"
+                          value={percentShares[p.id] ?? ''}
+                          onChange={(e) => setPercentShares((s) => ({ ...s, [p.id]: e.target.value }))}
+                          placeholder="0"
+                          aria-label={`${p.name} percent`}
+                        />
+                        <span className="text-sm font-extrabold">%</span>
+                        {Number.isFinite(parsedAmount) && (
+                          <span className="hidden text-xs font-bold text-[var(--muted)] sm:inline">
+                            {formatMoney(percentAmounts[p.id] ?? 0, currency)}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                className={cn('rounded-full px-3 py-1 text-xs font-extrabold', splitMode === 'equal' && 'bg-rose-500 text-white')}
-                onClick={() => setSplitMode('equal')}
-              >
-                Equal
-              </button>
-              <button
-                type="button"
-                className={cn('rounded-full px-3 py-1 text-xs font-extrabold', splitMode === 'custom' && 'bg-rose-500 text-white')}
-                onClick={() => {
-                  setSplitMode('custom')
-                  fillEqual()
-                }}
-              >
-                Custom shares
-              </button>
-            </div>
+
             {splitMode === 'equal' && Number.isFinite(parsedAmount) && participants.length > 0 && (
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                {participants.length} ways · {formatMoney(equal[participants[0]] ?? 0, currency)} each
+              <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
+                {participants.length} {participants.length === 1 ? 'person' : 'people'} ·{' '}
+                {formatMoney(equal[participants[0]] ?? 0, currency)} each
               </p>
             )}
-            {splitMode === 'custom' && (
-              <div className="mt-3 space-y-2">
-                {participants.map((id) => {
-                  const person = trip.people.find((p) => p.id === id)
-                  if (!person) return null
-                  return (
-                    <div key={id} className="flex items-center gap-2">
-                      <Avatar person={person} size="sm" />
-                      <span className="w-24 truncate text-sm font-bold">{person.name}</span>
-                      <TextInput
-                        inputMode="decimal"
-                        value={shares[id] ?? ''}
-                        onChange={(e) => setShares((s) => ({ ...s, [id]: e.target.value }))}
-                      />
-                    </div>
-                  )
-                })}
-                <p className="text-sm text-[var(--muted)]">
-                  Total {formatMoney(
-                    Object.values(customShares).reduce((s, n) => s + n, 0),
-                    currency,
-                  )}{' '}
-                  / {Number.isFinite(parsedAmount) ? formatMoney(parsedAmount, currency) : '—'}
-                </p>
-              </div>
+            {splitMode === 'custom' && Number.isFinite(parsedAmount) && (
+              <p className={cn('mt-2 text-sm font-bold', Math.abs(amountLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-rose-500')}>
+                {Math.abs(amountLeft) < 0.005
+                  ? `Adds up to ${formatMoney(parsedAmount, currency)}`
+                  : `${formatMoney(Math.abs(amountLeft), currency)} ${amountLeft > 0 ? 'left' : 'over'}`}
+              </p>
+            )}
+            {splitMode === 'percent' && (
+              <p className={cn('mt-2 text-sm font-bold', Math.abs(percentLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-rose-500')}>
+                {Math.abs(percentLeft) < 0.005 ? 'Adds up to 100%' : `${roundTo(Math.abs(percentLeft), 2)}% ${percentLeft > 0 ? 'left' : 'over'}`}
+              </p>
             )}
           </div>
 
@@ -310,7 +406,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
           {error && <p className="text-sm font-bold text-rose-600">{error}</p>}
 
           <div className="flex flex-wrap gap-2">
-            <Button className="flex-1" onClick={submit}>
+            <Button className="w-full flex-1" onClick={submit}>
               {editing ? 'Save changes' : 'Add expense'}
             </Button>
             {editing && onDelete && expense && (

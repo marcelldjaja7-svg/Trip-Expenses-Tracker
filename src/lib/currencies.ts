@@ -6,13 +6,13 @@ export type CurrencyInfo = {
 }
 
 export const CURRENCIES: CurrencyInfo[] = [
-  { code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2 },
-  { code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
-  { code: 'GBP', name: 'British Pound', symbol: '£', decimals: 2 },
   { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', decimals: 0 },
+  { code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2 },
   { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', decimals: 2 },
   { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', decimals: 2 },
   { code: 'THB', name: 'Thai Baht', symbol: '฿', decimals: 2 },
+  { code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
+  { code: 'GBP', name: 'British Pound', symbol: '£', decimals: 2 },
   { code: 'JPY', name: 'Japanese Yen', symbol: '¥', decimals: 0 },
   { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', decimals: 2 },
   { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', decimals: 2 },
@@ -25,6 +25,8 @@ export const CURRENCIES: CurrencyInfo[] = [
   { code: 'PHP', name: 'Philippine Peso', symbol: '₱', decimals: 2 },
   { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', decimals: 0 },
 ]
+
+export const DEFAULT_BASE_CURRENCY = 'IDR'
 
 export const CURRENCY_CODES = CURRENCIES.map((c) => c.code)
 
