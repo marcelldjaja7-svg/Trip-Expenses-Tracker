@@ -12,7 +12,7 @@ import {
 } from '../lib/money'
 import { cn, todayISO, uid } from '../lib/utils'
 import type { Expense, SplitMode, Trip } from '../types'
-import { Avatar, Button, Field, Modal, Select, TextInput } from './ui'
+import { Avatar, Button, Group, GroupRow, Modal, Segmented, TextInput } from './ui'
 
 type Props = {
   trip: Trip
@@ -170,23 +170,27 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={editing ? 'Edit expense' : 'Add expense'} wide>
+    <Modal open={open} onClose={onClose} title={editing ? 'Edit Expense' : 'Add Expense'} wide>
       {trip.people.length === 0 ? (
-        <p className="text-[var(--muted)]">Add friends to the trip before logging expenses.</p>
+        <p className="text-[15px] text-[var(--muted)]">Add friends to the trip before logging expenses.</p>
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-[1fr_8rem] gap-3">
-            <Field label="Amount">
+          <Group>
+            <GroupRow>
+              <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Amount</span>
               <TextInput
+                className="rounded-none bg-transparent px-0 py-0 text-right text-[22px] font-semibold tabular-nums dark:bg-transparent"
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0"
                 autoFocus
               />
-            </Field>
-            <Field label="Currency">
-              <Select
+            </GroupRow>
+            <GroupRow>
+              <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Currency</span>
+              <select
+                className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-right text-[17px] outline-none"
                 value={currency}
                 onChange={(e) => {
                   const code = e.target.value
@@ -200,39 +204,54 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                     {c.code}
                   </option>
                 ))}
-              </Select>
-            </Field>
-          </div>
+              </select>
+            </GroupRow>
+            <GroupRow>
+              <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Date</span>
+              <TextInput
+                className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </GroupRow>
+            <GroupRow>
+              <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Note</span>
+              <TextInput
+                className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Nasi goreng, taxi…"
+              />
+            </GroupRow>
+          </Group>
 
           {currency !== trip.baseCurrency && (
-            <div className="rounded-2xl border border-dashed border-[var(--line)] bg-black/5 p-3 dark:bg-white/5">
-              <p className="text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">
-                Rate to {trip.baseCurrency}
-              </p>
-              <div className="mt-2 flex items-center gap-2 text-sm font-bold">
-                <span>1 {currency} =</span>
+            <Group>
+              <GroupRow className="flex-wrap">
+                <span className="w-full text-[13px] text-[var(--muted)]">Rate to {trip.baseCurrency}</span>
+                <span className="text-[17px]">1 {currency} =</span>
                 <TextInput
                   inputMode="decimal"
-                  className="max-w-[10rem]"
+                  className="max-w-[9rem] rounded-xl bg-[var(--fill)] px-3 py-2 text-right dark:bg-black/30"
                   value={rateDraft}
                   onChange={(e) => setRateDraft(e.target.value)}
                 />
-                <span>{trip.baseCurrency}</span>
-              </div>
+                <span className="text-[17px]">{trip.baseCurrency}</span>
+              </GroupRow>
               {converted !== null && (
-                <p className="mt-2 text-sm text-[var(--muted)]">
-                  Converts to {formatMoney(converted, trip.baseCurrency)}
-                </p>
+                <GroupRow>
+                  <span className="flex-1 text-[15px] text-[var(--muted)]">Converts to</span>
+                  <span className="text-[15px] font-semibold tabular-nums">
+                    {formatMoney(converted, trip.baseCurrency)}
+                  </span>
+                </GroupRow>
               )}
-            </div>
+            </Group>
           )}
 
-          <Field label="Date">
-            <TextInput type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </Field>
-
           <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Who paid</p>
+            <p className="mb-2 px-1 text-[13px] text-[var(--muted)]">Who paid</p>
             <div className="flex flex-wrap gap-2">
               {trip.people.map((p) => (
                 <button
@@ -241,10 +260,8 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                   onClick={() => setPaidBy(p.id)}
                   data-on={paidBy === p.id}
                   className={cn(
-                    'chip flex items-center gap-2 rounded-full border px-2 py-1.5 pr-3 text-sm font-bold',
-                    paidBy === p.id
-                      ? 'border-transparent text-white shadow'
-                      : 'border-[var(--line)] bg-white/70 dark:bg-white/10',
+                    'chip flex items-center gap-2 rounded-full px-2 py-1.5 pr-3 text-[15px] font-medium',
+                    paidBy === p.id ? 'text-white' : 'bg-[var(--fill)]',
                   )}
                   style={paidBy === p.id ? { background: p.color } : undefined}
                 >
@@ -256,29 +273,19 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Split the bill</p>
-            <div className="grid grid-cols-3 rounded-2xl bg-black/5 p-1 dark:bg-white/10">
-              {SPLIT_TABS.map((tab) => (
-                <button
-                  type="button"
-                  key={tab.id}
-                  onClick={() => setMode(tab.id)}
-                  className={cn(
-                    'rounded-xl py-2 text-sm font-extrabold',
-                    splitMode === tab.id ? 'bg-rose-500 text-white shadow' : 'text-[var(--muted)]',
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-xs font-semibold text-[var(--muted)]">
+            <p className="mb-2 px-1 text-[13px] text-[var(--muted)]">Split</p>
+            <Segmented
+              options={SPLIT_TABS}
+              value={splitMode}
+              onChange={(id) => setMode(id as SplitMode)}
+            />
+            <p className="mt-2 px-1 text-[13px] text-[var(--muted)]">
               Tap In / Out to leave someone off this expense.
             </p>
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
-                className="rounded-full bg-black/5 px-3 py-1 text-xs font-extrabold dark:bg-white/10"
+                className="rounded-full bg-[var(--fill)] px-3 py-1 text-[13px] font-medium"
                 onClick={() => {
                   const ids = trip.people.map((p) => p.id)
                   setParticipants(ids)
@@ -290,7 +297,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
               </button>
               <button
                 type="button"
-                className="rounded-full bg-black/5 px-3 py-1 text-xs font-extrabold dark:bg-white/10"
+                className="rounded-full bg-[var(--fill)] px-3 py-1 text-[13px] font-medium"
                 onClick={() => {
                   if (!paidBy) return
                   setParticipants([paidBy])
@@ -302,35 +309,32 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
               </button>
             </div>
 
-            <div className="mt-3 divide-y divide-[var(--line)] overflow-hidden rounded-2xl border border-[var(--line)]">
+            <Group className="mt-3">
               {trip.people.map((p) => {
                 const on = participants.includes(p.id)
                 return (
-                  <div
-                    key={p.id}
-                    className={cn('flex flex-wrap items-center gap-2 px-3 py-2.5', !on && 'opacity-50')}
-                  >
+                  <GroupRow key={p.id} inset className={cn('flex-wrap', !on && 'opacity-45')}>
                     <Avatar person={p} size="sm" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-extrabold">{p.name}</span>
+                    <span className="min-w-0 flex-1 truncate text-[17px]">{p.name}</span>
                     <button
                       type="button"
                       onClick={() => togglePerson(p.id)}
                       className={cn(
-                        'rounded-full px-3 py-1 text-xs font-extrabold',
-                        on ? 'bg-teal-500 text-white' : 'bg-black/10 dark:bg-white/10',
+                        'rounded-full px-3 py-1 text-[13px] font-semibold',
+                        on ? 'bg-[var(--accent)] text-white' : 'bg-[var(--fill)] text-[var(--muted)]',
                       )}
                     >
                       {on ? 'In' : 'Out'}
                     </button>
                     {on && splitMode === 'equal' && Number.isFinite(parsedAmount) && (
-                      <span className="w-full text-right text-sm font-bold text-[var(--muted)] sm:w-auto">
+                      <span className="w-full text-right text-[15px] tabular-nums text-[var(--muted)] sm:w-auto">
                         {formatMoney(equal[p.id] ?? 0, currency)}
                       </span>
                     )}
                     {on && splitMode === 'custom' && (
                       <TextInput
                         inputMode="decimal"
-                        className="w-28 py-2 text-right"
+                        className="w-28 rounded-xl bg-[var(--fill)] py-2 text-right dark:bg-black/30"
                         value={amountShares[p.id] ?? ''}
                         onChange={(e) => setAmountShares((s) => ({ ...s, [p.id]: e.target.value }))}
                         placeholder="0"
@@ -341,47 +345,59 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                       <div className="flex items-center gap-1">
                         <TextInput
                           inputMode="decimal"
-                          className="w-20 py-2 text-right"
+                          className="w-20 rounded-xl bg-[var(--fill)] py-2 text-right dark:bg-black/30"
                           value={percentShares[p.id] ?? ''}
                           onChange={(e) => setPercentShares((s) => ({ ...s, [p.id]: e.target.value }))}
                           placeholder="0"
                           aria-label={`${p.name} percent`}
                         />
-                        <span className="text-sm font-extrabold">%</span>
+                        <span className="text-[15px] font-medium">%</span>
                         {Number.isFinite(parsedAmount) && (
-                          <span className="hidden text-xs font-bold text-[var(--muted)] sm:inline">
+                          <span className="hidden text-[13px] text-[var(--muted)] sm:inline">
                             {formatMoney(percentAmounts[p.id] ?? 0, currency)}
                           </span>
                         )}
                       </div>
                     )}
-                  </div>
+                  </GroupRow>
                 )
               })}
-            </div>
+            </Group>
 
             {splitMode === 'equal' && Number.isFinite(parsedAmount) && participants.length > 0 && (
-              <p className="mt-2 text-sm font-semibold text-[var(--muted)]">
+              <p className="mt-2 px-1 text-[13px] text-[var(--muted)]">
                 {participants.length} {participants.length === 1 ? 'person' : 'people'} ·{' '}
                 {formatMoney(equal[participants[0]] ?? 0, currency)} each
               </p>
             )}
             {splitMode === 'custom' && Number.isFinite(parsedAmount) && (
-              <p className={cn('mt-2 text-sm font-bold', Math.abs(amountLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-rose-500')}>
+              <p
+                className={cn(
+                  'mt-2 px-1 text-[13px] font-medium',
+                  Math.abs(amountLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-[var(--danger)]',
+                )}
+              >
                 {Math.abs(amountLeft) < 0.005
                   ? `Adds up to ${formatMoney(parsedAmount, currency)}`
                   : `${formatMoney(Math.abs(amountLeft), currency)} ${amountLeft > 0 ? 'left' : 'over'}`}
               </p>
             )}
             {splitMode === 'percent' && (
-              <p className={cn('mt-2 text-sm font-bold', Math.abs(percentLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-rose-500')}>
-                {Math.abs(percentLeft) < 0.005 ? 'Adds up to 100%' : `${roundTo(Math.abs(percentLeft), 2)}% ${percentLeft > 0 ? 'left' : 'over'}`}
+              <p
+                className={cn(
+                  'mt-2 px-1 text-[13px] font-medium',
+                  Math.abs(percentLeft) < 0.005 ? 'text-[var(--muted)]' : 'text-[var(--danger)]',
+                )}
+              >
+                {Math.abs(percentLeft) < 0.005
+                  ? 'Adds up to 100%'
+                  : `${roundTo(Math.abs(percentLeft), 2)}% ${percentLeft > 0 ? 'left' : 'over'}`}
               </p>
             )}
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--muted)]">Category</p>
+            <p className="mb-2 px-1 text-[13px] text-[var(--muted)]">Category</p>
             <div className="flex flex-wrap gap-2">
               {trip.categories.map((c) => (
                 <button
@@ -389,8 +405,8 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
                   key={c.id}
                   onClick={() => setCategoryId(c.id)}
                   className={cn(
-                    'rounded-full px-3 py-1.5 text-sm font-bold',
-                    categoryId === c.id ? 'bg-ink text-white dark:bg-white dark:text-ink' : 'bg-black/5 dark:bg-white/10',
+                    'rounded-full px-3 py-1.5 text-[15px] font-medium',
+                    categoryId === c.id ? 'bg-[var(--accent)] text-white' : 'bg-[var(--fill)]',
                   )}
                 >
                   {c.emoji} {c.name}
@@ -399,19 +415,15 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
             </div>
           </div>
 
-          <Field label="Note">
-            <TextInput value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nasi goreng, taxi, tickets…" />
-          </Field>
+          {error && <p className="text-[15px] font-medium text-[var(--danger)]">{error}</p>}
 
-          {error && <p className="text-sm font-bold text-rose-600">{error}</p>}
-
-          <div className="flex flex-wrap gap-2">
-            <Button className="w-full flex-1" onClick={submit}>
-              {editing ? 'Save changes' : 'Add expense'}
+          <div className="flex flex-col gap-2 pb-2">
+            <Button className="w-full" onClick={submit}>
+              {editing ? 'Save Changes' : 'Add Expense'}
             </Button>
             {editing && onDelete && expense && (
-              <Button variant="danger" onClick={() => onDelete(expense.id)}>
-                Delete
+              <Button variant="ghost" className="w-full text-[var(--danger)]" onClick={() => onDelete(expense.id)}>
+                Delete Expense
               </Button>
             )}
           </div>

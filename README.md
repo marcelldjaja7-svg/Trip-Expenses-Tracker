@@ -1,6 +1,6 @@
 # TripTab — trip expense splitter
 
-A local-first web app for splitting shared trip costs with friends. Multi-currency (settle in **IDR** by default), equal / amount / percent splits, settle-up suggestions, and no account required. Opens in **dark mode**.
+A local-first web app for splitting shared trip costs with friends. Multi-currency (settle in **IDR** by default), equal / amount / percent splits, settle-up suggestions, and no account required. Opens in **dark mode**, with an Apple-like iOS interface (grouped lists, system-blue controls, light mode available).
 
 ## Run locally
 

@@ -1,4 +1,5 @@
 import type { Category, Expense, Trip } from '../types'
+import { PERSON_COLORS } from './colors'
 import { ratesForBase } from './currencies'
 import { uid } from './utils'
 
@@ -43,10 +44,10 @@ export function createDemoTrip(): Trip {
     updatedAt: now,
     rates: ratesForBase('IDR'),
     people: [
-      { id: maya, name: 'Maya', color: '#f97366' },
-      { id: jordan, name: 'Jordan', color: '#2dd4bf' },
-      { id: priya, name: 'Priya', color: '#a78bfa' },
-      { id: alex, name: 'Alex', color: '#fbbf24' },
+      { id: maya, name: 'Maya', color: PERSON_COLORS[0] },
+      { id: jordan, name: 'Jordan', color: PERSON_COLORS[1] },
+      { id: priya, name: 'Priya', color: PERSON_COLORS[2] },
+      { id: alex, name: 'Alex', color: PERSON_COLORS[3] },
     ],
     categories: defaultCategories(),
     expenses: [

@@ -1,14 +1,14 @@
 export const PERSON_COLORS = [
-  '#f97366',
-  '#2dd4bf',
-  '#a78bfa',
-  '#fbbf24',
-  '#38bdf8',
-  '#f472b6',
-  '#34d399',
-  '#fb923c',
-  '#818cf8',
-  '#e879f9',
+  '#FF8A80',
+  '#82B1FF',
+  '#B39DDB',
+  '#80CBC4',
+  '#FFD54F',
+  '#F48FB1',
+  '#A5D6A7',
+  '#90CAF9',
+  '#CE93D8',
+  '#FFCC80',
 ] as const
 
 export function nextPersonColor(used: string[]): string {

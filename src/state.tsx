@@ -36,7 +36,7 @@ function applyTheme(theme: Theme) {
   const dark = theme !== 'light'
   document.documentElement.classList.toggle('dark', dark)
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#120f0d' : '#f4ece1')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#000000' : '#F2F2F7')
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {

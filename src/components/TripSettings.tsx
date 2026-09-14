@@ -7,7 +7,7 @@ import { downloadJson, shareUrlForTrip, slugify, tripSummaryText } from '../lib/
 import { normalizeAppData, normalizeTrip } from '../lib/storage'
 import { cn, uid } from '../lib/utils'
 import type { Trip } from '../types'
-import { Avatar, Button, Field, Select, TextInput } from './ui'
+import { Avatar, Group, GroupRow, SectionLabel, Select, TextInput } from './ui'
 
 export function TripSettings({
   trip,
@@ -62,37 +62,54 @@ export function TripSettings({
     trip.expenses.some((e) => e.paidBy === personId || e.participantIds.includes(personId))
 
   return (
-    <div className="space-y-6">
-      <section className="card-solid rounded-[1.75rem] p-5 space-y-4">
-        <h3 className="font-display text-xl">Trip details</h3>
-        <div className="flex flex-wrap gap-1.5">
-          {TRIP_EMOJIS.map((e) => (
-            <button
-              type="button"
-              key={e}
-              onClick={() => onChange({ ...trip, emoji: e })}
-              className={cn(
-                'grid h-10 w-10 place-items-center rounded-2xl text-xl',
-                trip.emoji === e ? 'bg-rose-100 ring-2 ring-rose-400 dark:bg-rose-500/20' : 'hover:bg-black/5 dark:hover:bg-white/10',
-              )}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-        <Field label="Name">
-          <TextInput value={trip.name} onChange={(e) => onChange({ ...trip, name: e.target.value })} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Start">
-            <TextInput type="date" value={trip.startDate} onChange={(e) => onChange({ ...trip, startDate: e.target.value })} />
-          </Field>
-          <Field label="End">
-            <TextInput type="date" value={trip.endDate} onChange={(e) => onChange({ ...trip, endDate: e.target.value })} />
-          </Field>
-        </div>
-        <Field label="Base currency">
+    <div className="pb-4">
+      <SectionLabel>Trip</SectionLabel>
+      <div className="mb-3 flex flex-wrap gap-1">
+        {TRIP_EMOJIS.map((e) => (
+          <button
+            type="button"
+            key={e}
+            onClick={() => onChange({ ...trip, emoji: e })}
+            className={cn(
+              'grid h-9 w-9 place-items-center rounded-[10px] text-[18px]',
+              trip.emoji === e ? 'bg-[var(--accent)]/15 ring-2 ring-[var(--accent)]' : 'hover:bg-[var(--fill)]',
+            )}
+          >
+            {e}
+          </button>
+        ))}
+      </div>
+      <Group>
+        <GroupRow>
+          <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">Name</span>
+          <TextInput
+            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+            value={trip.name}
+            onChange={(e) => onChange({ ...trip, name: e.target.value })}
+          />
+        </GroupRow>
+        <GroupRow>
+          <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">Start</span>
+          <TextInput
+            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+            type="date"
+            value={trip.startDate}
+            onChange={(e) => onChange({ ...trip, startDate: e.target.value })}
+          />
+        </GroupRow>
+        <GroupRow>
+          <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">End</span>
+          <TextInput
+            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+            type="date"
+            value={trip.endDate}
+            onChange={(e) => onChange({ ...trip, endDate: e.target.value })}
+          />
+        </GroupRow>
+        <GroupRow>
+          <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">Currency</span>
           <Select
+            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
             value={trip.baseCurrency}
             onChange={(e) => {
               const base = e.target.value
@@ -109,16 +126,16 @@ export function TripSettings({
               </option>
             ))}
           </Select>
-        </Field>
-      </section>
+        </GroupRow>
+      </Group>
 
-      <section className="card-solid rounded-[1.75rem] p-5 space-y-3">
-        <h3 className="font-display text-xl">Friends</h3>
+      <SectionLabel>Friends</SectionLabel>
+      <Group>
         {trip.people.map((p) => (
-          <div key={p.id} className="flex flex-wrap items-center gap-2">
+          <GroupRow key={p.id} inset className="flex-wrap py-3">
             <Avatar person={p} />
             <TextInput
-              className="min-w-[8rem] flex-1"
+              className="min-w-[7rem] flex-1 rounded-xl bg-[var(--fill)] px-3 py-2 dark:bg-black/25"
               value={p.name}
               onChange={(e) =>
                 onChange({
@@ -133,7 +150,10 @@ export function TripSettings({
                   type="button"
                   key={c}
                   aria-label={`Color ${c}`}
-                  className={cn('h-6 w-6 rounded-full', p.color === c && 'ring-2 ring-offset-2 ring-black/40')}
+                  className={cn(
+                    'h-5 w-5 rounded-full',
+                    p.color === c && 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--grouped)]',
+                  )}
                   style={{ background: c }}
                   onClick={() =>
                     onChange({
@@ -144,8 +164,10 @@ export function TripSettings({
                 />
               ))}
             </div>
-            <Button
-              variant="ghost"
+            <button
+              type="button"
+              className="text-[var(--danger)]"
+              aria-label={`Remove ${p.name}`}
               onClick={() => {
                 if (involved(p.id)) {
                   onNotify('This friend is on an expense — remove those first')
@@ -154,12 +176,13 @@ export function TripSettings({
                 onChange({ ...trip, people: trip.people.filter((x) => x.id !== p.id) })
               }}
             >
-              <Trash2 size={16} />
-            </Button>
-          </div>
+              <Trash2 size={16} strokeWidth={1.75} />
+            </button>
+          </GroupRow>
         ))}
-        <div className="flex gap-2">
+        <GroupRow>
           <TextInput
+            className="rounded-none bg-transparent px-0 py-0 dark:bg-transparent"
             value={newFriend}
             placeholder="Add a friend"
             onChange={(e) => setNewFriend(e.target.value)}
@@ -174,8 +197,9 @@ export function TripSettings({
               }
             }}
           />
-          <Button
-            variant="secondary"
+          <button
+            type="button"
+            className="text-[17px] font-medium text-[var(--accent)]"
             onClick={() => {
               if (!newFriend.trim()) return
               const color = PERSON_COLORS[trip.people.length % PERSON_COLORS.length]
@@ -187,16 +211,16 @@ export function TripSettings({
             }}
           >
             Add
-          </Button>
-        </div>
-      </section>
+          </button>
+        </GroupRow>
+      </Group>
 
-      <section className="card-solid rounded-[1.75rem] p-5 space-y-3">
-        <h3 className="font-display text-xl">Categories</h3>
+      <SectionLabel>Categories</SectionLabel>
+      <Group>
         {trip.categories.map((c) => (
-          <div key={c.id} className="flex gap-2">
+          <GroupRow key={c.id}>
             <TextInput
-              className="w-16 text-center"
+              className="w-12 rounded-xl bg-[var(--fill)] px-1 py-2 text-center dark:bg-black/25"
               value={c.emoji}
               onChange={(e) =>
                 onChange({
@@ -206,7 +230,7 @@ export function TripSettings({
               }
             />
             <TextInput
-              className="flex-1"
+              className="flex-1 rounded-none bg-transparent px-0 py-0 dark:bg-transparent"
               value={c.name}
               onChange={(e) =>
                 onChange({
@@ -216,8 +240,10 @@ export function TripSettings({
               }
             />
             {c.id !== 'settlement' && (
-              <Button
-                variant="ghost"
+              <button
+                type="button"
+                className="text-[var(--danger)]"
+                aria-label={`Remove ${c.name}`}
                 onClick={() => {
                   if (trip.expenses.some((e) => e.categoryId === c.id)) {
                     onNotify('Move expenses off this category first')
@@ -226,15 +252,21 @@ export function TripSettings({
                   onChange({ ...trip, categories: trip.categories.filter((x) => x.id !== c.id) })
                 }}
               >
-                <Trash2 size={16} />
-              </Button>
+                <Trash2 size={16} strokeWidth={1.75} />
+              </button>
             )}
-          </div>
+          </GroupRow>
         ))}
-        <div className="flex gap-2">
-          <TextInput value={newCat} placeholder="Custom category" onChange={(e) => setNewCat(e.target.value)} />
-          <Button
-            variant="secondary"
+        <GroupRow>
+          <TextInput
+            className="rounded-none bg-transparent px-0 py-0 dark:bg-transparent"
+            value={newCat}
+            placeholder="Custom category"
+            onChange={(e) => setNewCat(e.target.value)}
+          />
+          <button
+            type="button"
+            className="text-[17px] font-medium text-[var(--accent)]"
             onClick={() => {
               if (!newCat.trim()) return
               onChange({
@@ -245,110 +277,103 @@ export function TripSettings({
             }}
           >
             Add
-          </Button>
-        </div>
-      </section>
+          </button>
+        </GroupRow>
+      </Group>
 
-      <section className="card-solid rounded-[1.75rem] p-5 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 className="font-display text-xl">Conversion rates</h3>
-            <p className="text-sm text-[var(--muted)]">
-              1 unit of each currency in {trip.baseCurrency}. Manual is enough; live fetch is optional.
-            </p>
-            {trip.ratesUpdatedAt && (
-              <p className="text-xs font-bold text-[var(--muted)]">
-                Last fetch {new Date(trip.ratesUpdatedAt).toLocaleString()}
-              </p>
-            )}
-          </div>
-          <Button variant="secondary" onClick={() => void pullRates()} disabled={fetching}>
-            <RefreshCw size={16} className={fetching ? 'animate-spin' : ''} /> Fetch live
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {usedCurrencies
-            .filter((code, i, arr) => arr.indexOf(code) === i && code !== trip.baseCurrency)
-            .slice(0, 18)
-            .map((code) => {
-              const rate = trip.rates[code] ?? 1
-              return (
-                <div key={code} className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-2">
-                  <span className="font-extrabold">{code}</span>
-                  <RateInput
-                    value={rate}
-                    onCommit={(n) =>
-                      onChange({
-                        ...trip,
-                        rates: { ...trip.rates, [code]: n },
-                      })
-                    }
-                  />
-                  <span className="text-xs font-bold text-[var(--muted)]">
-                    1 {trip.baseCurrency} ≈ {roundTo(inverseRate(rate), rate < 0.01 ? 0 : 2)} {code}
-                  </span>
-                </div>
-              )
-            })}
-        </div>
-      </section>
+      <SectionLabel>Conversion rates</SectionLabel>
+      <p className="mb-2 px-4 text-[13px] text-[var(--muted)]">
+        1 unit of each currency in {trip.baseCurrency}. Manual is enough; live fetch is optional.
+        {trip.ratesUpdatedAt ? ` Last fetch ${new Date(trip.ratesUpdatedAt).toLocaleString()}.` : ''}
+      </p>
+      <Group>
+        <GroupRow onClick={() => void pullRates()}>
+          <RefreshCw size={16} strokeWidth={1.75} className={cn('text-[var(--accent)]', fetching && 'animate-spin')} />
+          <span className="flex-1 text-[17px] text-[var(--accent)]">{fetching ? 'Fetching…' : 'Fetch Live Rates'}</span>
+        </GroupRow>
+        {usedCurrencies
+          .filter((code, i, arr) => arr.indexOf(code) === i && code !== trip.baseCurrency)
+          .slice(0, 18)
+          .map((code) => {
+            const rate = trip.rates[code] ?? 1
+            return (
+              <GroupRow key={code} className="py-3">
+                <span className="w-14 font-semibold">{code}</span>
+                <RateInput
+                  value={rate}
+                  onCommit={(n) =>
+                    onChange({
+                      ...trip,
+                      rates: { ...trip.rates, [code]: n },
+                    })
+                  }
+                />
+                <span className="w-[7.5rem] text-right text-[12px] text-[var(--muted)]">
+                  1 {trip.baseCurrency} ≈ {roundTo(inverseRate(rate), rate < 0.01 ? 0 : 2)} {code}
+                </span>
+              </GroupRow>
+            )
+          })}
+      </Group>
 
-      <section className="card-solid rounded-[1.75rem] p-5 space-y-3">
-        <h3 className="font-display text-xl">Share & backup</h3>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => void copySummary()}>
-            <Copy size={16} /> Copy summary
-          </Button>
-          <Button variant="secondary" onClick={() => void copyLink()}>
-            <Copy size={16} /> Copy share link
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => downloadJson(`${slugify(trip.name)}.triptab.json`, trip)}
-          >
-            <Download size={16} /> Download trip
-          </Button>
-          <label className="pressable inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-[var(--line)] bg-white/70 px-4 py-2.5 text-sm font-bold dark:bg-white/10">
-            <Upload size={16} /> Import JSON
-            <input
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0]
-                e.target.value = ''
-                if (!file) return
-                try {
-                  const raw = JSON.parse(await file.text()) as unknown
-                  const one = normalizeTrip(raw)
-                  if (one && one.people) {
-                    onChange({ ...one, id: trip.id })
-                    onNotify('Replaced this trip from file')
-                    return
-                  }
-                  const app = normalizeAppData(raw)
-                  if (app?.trips[0]) {
-                    onChange({ ...app.trips[0], id: trip.id })
-                    onNotify('Replaced this trip from file')
-                    return
-                  }
-                  onNotify('Could not read that file')
-                } catch {
-                  onNotify('Could not read that file')
+      <SectionLabel>Share & backup</SectionLabel>
+      <Group>
+        <GroupRow onClick={() => void copySummary()}>
+          <Copy size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
+          <span className="flex-1 text-[17px]">Copy Summary</span>
+        </GroupRow>
+        <GroupRow onClick={() => void copyLink()}>
+          <Copy size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
+          <span className="flex-1 text-[17px]">Copy Share Link</span>
+        </GroupRow>
+        <GroupRow onClick={() => downloadJson(`${slugify(trip.name)}.triptab.json`, trip)}>
+          <Download size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
+          <span className="flex-1 text-[17px]">Download Trip</span>
+        </GroupRow>
+        <label className="row-sep relative flex min-h-[44px] w-full cursor-pointer items-center gap-3 px-4 py-2.5">
+          <Upload size={16} strokeWidth={1.75} className="text-[var(--accent)]" />
+          <span className="flex-1 text-[17px]">Import JSON</span>
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              e.target.value = ''
+              if (!file) return
+              try {
+                const raw = JSON.parse(await file.text()) as unknown
+                const one = normalizeTrip(raw)
+                if (one && one.people) {
+                  onChange({ ...one, id: trip.id })
+                  onNotify('Replaced this trip from file')
+                  return
                 }
-              }}
-            />
-          </label>
-        </div>
-      </section>
+                const app = normalizeAppData(raw)
+                if (app?.trips[0]) {
+                  onChange({ ...app.trips[0], id: trip.id })
+                  onNotify('Replaced this trip from file')
+                  return
+                }
+                onNotify('Could not read that file')
+              } catch {
+                onNotify('Could not read that file')
+              }
+            }}
+          />
+        </label>
+      </Group>
 
-      <section className="rounded-[1.75rem] border border-rose-300/60 bg-rose-50 p-5 dark:bg-rose-950/30">
-        <h3 className="font-display text-xl text-rose-700 dark:text-rose-300">Danger zone</h3>
-        <p className="mt-1 text-sm text-[var(--muted)]">Delete this trip from this browser. Export first if you might need it.</p>
-        <Button variant="danger" className="mt-3" onClick={onDeleteTrip}>
-          <Trash2 size={16} /> Delete trip
-        </Button>
-      </section>
+      <SectionLabel>Danger zone</SectionLabel>
+      <Group>
+        <GroupRow onClick={onDeleteTrip}>
+          <Trash2 size={16} strokeWidth={1.75} className="text-[var(--danger)]" />
+          <span className="flex-1 text-[17px] text-[var(--danger)]">Delete Trip</span>
+        </GroupRow>
+      </Group>
+      <p className="mt-2 px-4 text-[13px] text-[var(--muted)]">
+        Deletes this trip from this browser. Export first if you might need it.
+      </p>
     </div>
   )
 }
@@ -361,6 +386,7 @@ function RateInput({ value, onCommit }: { value: number; onCommit: (n: number) =
   return (
     <TextInput
       inputMode="decimal"
+      className="flex-1 rounded-xl bg-[var(--fill)] px-3 py-2 text-right dark:bg-black/25"
       value={draft}
       onChange={(e) => {
         setDraft(e.target.value)

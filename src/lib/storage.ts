@@ -1,5 +1,6 @@
 import type { AppData, Category, Expense, Person, Trip } from '../types'
 import { CURRENCY_CODES, DEFAULT_BASE_CURRENCY, ratesForBase } from './currencies'
+import { PERSON_COLORS } from './colors'
 import { defaultCategories } from './demo'
 
 export const STORAGE_KEY = 'triptab.v1'
@@ -104,7 +105,7 @@ function normalizePerson(input: unknown): Person | null {
   return {
     id: raw.id,
     name: raw.name.trim() || 'Friend',
-    color: typeof raw.color === 'string' ? raw.color : '#f97366',
+    color: typeof raw.color === 'string' ? raw.color : PERSON_COLORS[0],
   }
 }
 
