@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --color-ink: #1c1410;
+  --color-paper: #fffaf3;
+  --color-blush: #fb7185;
+  --color-sun: #f59e0b;
+  --color-lagoon: #14b8a6;
+}
+
+:root {
+  color-scheme: light;
+  --bg: #f4ece1;
+  --bg-2: #fffaf3;
+  --text: #1c1410;
+  --muted: #6f6258;
+  --line: rgba(28, 20, 16, 0.1);
+  --card: rgba(255, 250, 243, 0.78);
+  --card-solid: #fffdf9;
+  --shadow: 0 18px 50px -24px rgba(92, 47, 28, 0.45);
+  --blob-1: rgba(251, 113, 133, 0.28);
+  --blob-2: rgba(20, 184, 166, 0.2);
+  --blob-3: rgba(245, 158, 11, 0.18);
+  --accent: #e11d48;
+  --accent-2: #0f766e;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #120f0d;
+  --bg-2: #1b1613;
+  --text: #f6efe6;
+  --muted: #b3a79c;
+  --line: rgba(246, 239, 230, 0.1);
+  --card: rgba(32, 26, 22, 0.78);
+  --card-solid: #231e1a;
+  --shadow: 0 22px 50px -20px rgba(0, 0, 0, 0.7);
+  --blob-1: rgba(251, 113, 133, 0.18);
+  --blob-2: rgba(45, 212, 191, 0.12);
+  --blob-3: rgba(251, 191, 36, 0.1);
+  --accent: #fb7185;
+  --accent-2: #2dd4bf;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background:
+    radial-gradient(900px 520px at -10% -10%, var(--blob-1), transparent 55%),
+    radial-gradient(800px 480px at 110% 0%, var(--blob-2), transparent 50%),
+    radial-gradient(700px 400px at 50% 110%, var(--blob-3), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: #fb718580;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.glass {
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.card-solid {
+  background: var(--card-solid);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.pressable {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.pressable:hover {
+  transform: translateY(-1px);
+}
+
+.pressable:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.chip {
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.chip[data-on='true'] {
+  transform: translateY(-1px);
+}
+
+.fade-up {
+  animation: fadeUp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sheet-in {
+  animation: sheetIn 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.confetti-bit {
+  position: absolute;
+  animation: pop 900ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(1.1) rotate(var(--rot));
+  }
+}
+
+.balance-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 18%, transparent);
+  overflow: hidden;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0.55;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up,
+  .sheet-in,
+  .pressable,
+  .chip,
+  .confetti-bit {
+    animation: none !important;
+    transition: none !important;
+  }
+}
