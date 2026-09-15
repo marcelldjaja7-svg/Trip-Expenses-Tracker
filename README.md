@@ -62,7 +62,8 @@ No API keys are required to use TripTab. Optional extras:
    - Tap **Out** to exclude someone from that expense. **Everyone** / **Just payer** are shortcuts.
 4. **Set conversion rates** — when an expense isn’t in IDR (or your chosen base), set e.g. “1 USD = 16200 IDR”. Edit rates anytime under **Trip**. Live fetch is a shortcut, not a requirement.
 5. **Settle up** — open the settle tab for net balances and the fewest suggested payments. Copy a payment, or tap **Log payment** after someone actually pays.
-6. **Share with friends** — tap share / **Invite Friends** for a **live** link so everyone can add expenses on their own phone. Copy a text summary or download JSON as a backup.
+6. **High rollers** — open the **Board** tab for a casino-style top-spender leaderboard. Toggle **Paid** vs **On the tab**, tap a person to see their bills, or hit **Deal** for a shuffle. Settle-up payments don’t count.
+7. **Share with friends** — tap share / **Invite Friends** for a **live** link so everyone can add expenses on their own phone. Copy a text summary or download JSON as a backup.
 
 Use the sun/moon control to switch light and dark. There’s a **Bali demo trip** on the home screen if you want to click around before creating your own.
 
