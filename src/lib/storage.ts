@@ -157,6 +157,7 @@ function normalizeExpense(
         )
       : undefined
   const splitMode = raw.splitMode === 'custom' || raw.splitMode === 'percent' ? raw.splitMode : 'equal'
+  const lineItems = normalizeLineItems(raw.lineItems)
   return {
     id: typeof raw.id === 'string' ? raw.id : crypto.randomUUID(),
     amount,
@@ -170,5 +171,22 @@ function normalizeExpense(
     date: typeof raw.date === 'string' ? raw.date : '',
     createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : Date.now(),
     updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : undefined,
+    ...(lineItems ? { lineItems } : {}),
   }
+}
+
+export function normalizeLineItems(input: unknown): { name: string; amount: number }[] | undefined {
+  if (!Array.isArray(input)) return undefined
+  const items = input
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null
+      const row = item as Record<string, unknown>
+      const name = typeof row.name === 'string' ? row.name.trim() : ''
+      const amount = typeof row.amount === 'number' ? row.amount : Number(row.amount)
+      if (!name || !Number.isFinite(amount) || amount < 0) return null
+      return { name: name.slice(0, 60), amount }
+    })
+    .filter((x): x is { name: string; amount: number } => Boolean(x))
+    .slice(0, 20)
+  return items.length ? items : undefined
 }

@@ -10,7 +10,7 @@ import {
   sharesMatchTotal,
   sharesSum,
 } from '../lib/money'
-import type { ReceiptScan } from '../lib/receipt'
+import { noteFromScan, type ReceiptScan } from '../lib/receipt'
 import { cn, todayISO, uid } from '../lib/utils'
 import type { Expense, SplitMode, Trip } from '../types'
 import { BillScanPanel, ScanLines } from './BillScan'
@@ -20,6 +20,7 @@ type Props = {
   trip: Trip
   expense?: Expense | null
   open: boolean
+  preferScan?: boolean
   onClose: () => void
   onSave: (expense: Expense, rate?: { currency: string; rate: number }) => void
   onDelete?: (id: string) => void
@@ -31,7 +32,7 @@ const SPLIT_TABS: { id: SplitMode; label: string }[] = [
   { id: 'percent', label: '%' },
 ]
 
-export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: Props) {
+export function ExpenseForm({ trip, expense, open, preferScan, onClose, onSave, onDelete }: Props) {
   const editing = Boolean(expense)
   const [amount, setAmount] = useState(expense ? String(expense.amount) : '')
   const [currency, setCurrency] = useState(expense?.currency ?? trip.baseCurrency)
@@ -62,7 +63,7 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
     return r ? String(roundTo(r, 8)) : '1'
   })
   const [error, setError] = useState('')
-  const [scanLines, setScanLines] = useState<{ name: string; amount: number }[]>([])
+  const [scanLines, setScanLines] = useState<{ name: string; amount: number }[]>(expense?.lineItems ?? [])
 
   const parsedAmount = Number(amount)
   const rate = Number(rateDraft)
@@ -137,7 +138,9 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
       const existing = trip.rates[scan.currency]
       setRateDraft(existing ? String(roundTo(existing, 8)) : '1')
     }
-    if (scan.note) setNote(scan.note)
+    if (scan.note || scan.merchant || scan.lineItems?.length) {
+      setNote(noteFromScan(scan.note || scan.merchant || '', scan.lineItems ?? []))
+    }
     if (scan.date) setDate(scan.date)
     if (scan.categoryId) setCategoryId(scan.categoryId)
     setScanLines(scan.lineItems ?? [])
@@ -179,21 +182,21 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
       splitMode,
       shares: splitMode === 'custom' ? parsedAmounts : splitMode === 'percent' ? parsedPercents : undefined,
       categoryId,
-      note: note.trim(),
+      note: noteFromScan(note.trim(), scanLines),
       date,
       createdAt: expense?.createdAt ?? Date.now(),
+      lineItems: scanLines.length ? scanLines : undefined,
     }
     onSave(next, currency === trip.baseCurrency ? undefined : { currency, rate })
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={editing ? 'Edit Expense' : 'Add Expense'} wide>
+    <Modal open={open} onClose={onClose} title={editing ? 'Edit Expense' : preferScan ? 'Scan bill' : 'Add Expense'} wide>
       {trip.people.length === 0 ? (
         <p className="text-[15px] text-[var(--muted)]">Add friends to the trip before logging expenses.</p>
       ) : (
         <div className="space-y-4">
           <BillScanPanel trip={trip} onApply={applyScan} />
-          {scanLines.length > 0 && <ScanLines items={scanLines} currency={currency} />}
 
           <Group>
             <GroupRow>
@@ -244,6 +247,8 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
               />
             </GroupRow>
           </Group>
+
+          {scanLines.length > 0 && <ScanLines items={scanLines} currency={currency} />}
 
           {currency !== trip.baseCurrency && (
             <Group>

@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Receipt, Scale, Settings2, Share } from 'lucide-react'
+import { ArrowLeft, Camera, Plus, Receipt, Scale, Settings2, Share } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { convertedLabel, formatMoney, isSettlement, splitLabel, tripTotalBase } from '../lib/money'
 import { cn } from '../lib/utils'
@@ -16,6 +16,7 @@ export function TripPage({ trip }: { trip: Trip }) {
   const [tab, setTab] = useState<Tab>('expenses')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
+  const [preferScan, setPreferScan] = useState(false)
 
   const peopleById = useMemo(() => new Map(trip.people.map((p) => [p.id, p])), [trip.people])
   const cats = useMemo(() => new Map(trip.categories.map((c) => [c.id, c])), [trip.categories])
@@ -32,8 +33,9 @@ export function TripPage({ trip }: { trip: Trip }) {
     return [...map.entries()]
   }, [trip.expenses])
 
-  const openNew = () => {
+  const openNew = (scan = false) => {
     setEditing(null)
+    setPreferScan(scan)
     setFormOpen(true)
   }
 
@@ -80,7 +82,7 @@ export function TripPage({ trip }: { trip: Trip }) {
           {tab !== 'settings' ? (
             <button
               type="button"
-              onClick={openNew}
+              onClick={() => openNew(false)}
               className="pressable inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--accent)] text-white"
               aria-label="Add expense"
             >
@@ -133,6 +135,43 @@ export function TripPage({ trip }: { trip: Trip }) {
             Sample Bali data so you can look around. Start a real trip anytime — or edit this one.
           </p>
         )}
+
+        {tab === 'expenses' && (
+          <div className="mt-4 space-y-2">
+            <Group>
+              <GroupRow
+                onClick={() => {
+                  void shareWithFriends(trip)
+                }}
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[var(--accent)]/15 text-[var(--accent)]">
+                  <Share size={16} strokeWidth={2} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[17px] font-semibold">
+                    {trip.shareId ? 'Invite friends' : 'Let friends add expenses'}
+                  </span>
+                  <span className="mt-0.5 block text-[13px] text-[var(--muted)]">
+                    Send a link. They open it on their phone and log bills on this trip.
+                  </span>
+                </span>
+                <Chevron />
+              </GroupRow>
+              <GroupRow onClick={() => openNew(true)}>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[var(--accent)]/15 text-[var(--accent)]">
+                  <Camera size={16} strokeWidth={2} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[17px] font-semibold">Scan a bill</span>
+                  <span className="mt-0.5 block text-[13px] text-[var(--muted)]">
+                    Photo of a receipt. AI lists the items — you check, then save.
+                  </span>
+                </span>
+                <Chevron />
+              </GroupRow>
+            </Group>
+          </div>
+        )}
       </header>
 
       <div className="mt-2">
@@ -144,8 +183,11 @@ export function TripPage({ trip }: { trip: Trip }) {
                   <Receipt size={28} strokeWidth={1.5} />
                 </span>
                 <p className="title-3 mt-4">No expenses yet</p>
-                <p className="mt-1 text-[15px] text-[var(--muted)]">Add a taxi, meal, or stay to get started.</p>
-                <Button className="mt-5" onClick={openNew}>
+                <p className="mt-1 text-[15px] text-[var(--muted)]">Add a taxi, meal, or scan a receipt to get started.</p>
+                <Button className="mt-5" onClick={() => openNew(true)}>
+                  <Camera size={16} strokeWidth={2.25} /> Scan a bill
+                </Button>
+                <Button variant="secondary" className="mt-2" onClick={() => openNew(false)}>
                   <Plus size={16} strokeWidth={2.25} /> Add Expense
                 </Button>
               </div>
@@ -165,6 +207,7 @@ export function TripPage({ trip }: { trip: Trip }) {
                           key={expense.id}
                           inset
                           onClick={() => {
+                            setPreferScan(false)
                             setEditing(expense)
                             setFormOpen(true)
                           }}
@@ -241,13 +284,15 @@ export function TripPage({ trip }: { trip: Trip }) {
 
       {formOpen && (
         <ExpenseForm
-          key={editing?.id ?? 'new'}
+          key={editing?.id ?? (preferScan ? 'scan' : 'new')}
           trip={trip}
           expense={editing}
           open={formOpen}
+          preferScan={preferScan && !editing}
           onClose={() => {
             setFormOpen(false)
             setEditing(null)
+            setPreferScan(false)
           }}
           onSave={saveExpense}
           onDelete={(id) => {
@@ -258,6 +303,7 @@ export function TripPage({ trip }: { trip: Trip }) {
             })
             setFormOpen(false)
             setEditing(null)
+            setPreferScan(false)
             notify('Expense deleted')
           }}
         />
