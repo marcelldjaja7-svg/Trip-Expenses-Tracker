@@ -1,13 +1,14 @@
 import { Download, Map, Plus, Upload } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { TRIP_EMOJIS } from '../lib/colors'
-import { CURRENCIES, DEFAULT_BASE_CURRENCY } from '../lib/currencies'
+import { DEFAULT_BASE_CURRENCY } from '../lib/currencies'
 import { DESTINATIONS, resolveDestination } from '../lib/destinations'
 import { formatMoney, tripTotalBase } from '../lib/money'
 import { downloadJson } from '../lib/share'
 import { cn, todayISO } from '../lib/utils'
 import { useStore } from '../state'
 import { ScanSettings } from './ScanSettings'
+import { CurrencyPicker } from './CurrencyPicker'
 import { DestinationThumb } from './TripHero'
 import {
   AvatarStack,
@@ -246,17 +247,7 @@ function NewTripModal({
             />
           </FieldBlock>
           <FieldBlock label="Currency">
-            <Select
-              className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
-              value={baseCurrency}
-              onChange={(e) => setBaseCurrency(e.target.value)}
-            >
-              {CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code} — {c.name}
-                </option>
-              ))}
-            </Select>
+            <CurrencyPicker value={baseCurrency} onChange={setBaseCurrency} />
           </FieldBlock>
           <FieldBlock label="Place">
             <Select
