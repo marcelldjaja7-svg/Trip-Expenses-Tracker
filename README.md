@@ -16,9 +16,9 @@ On your phone on the same Wi‑Fi, you can also use your computer’s LAN addres
 ## Share with friends (other phones)
 
 1. Deploy TripTab so it has a public URL. After this repo is on GitHub, turn on **Settings → Pages → GitHub Actions**, merge to `main`, and open:
-   `https://<your-github-username>.github.io/Trip-Expenses-Tracker/`
+   `https://marcelldjaja7-svg.github.io/TripTab/`
 2. Create a trip, tap the **share** button (or **Trip → Start Live Trip / Invite Friends**).
-3. Send that link (it looks like `…/Trip-Expenses-Tracker/?t=…`). Friends open it on any phone, and expenses they add show up for everyone on the same link (the trip syncs every few seconds). Anyone with the link can edit.
+3. Send that link (it looks like `…/TripTab/?t=…`). Friends open it on any phone, and expenses they add show up for everyone on the same link (the trip syncs every few seconds). Anyone with the link can edit.
 
 Until the site is deployed, a live invite copied from `localhost` only works on this computer.
 
