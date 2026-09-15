@@ -44,9 +44,48 @@ export function createDemoTrip(): Trip {
     updatedAt: now,
     rates: ratesForBase('IDR'),
     people: [
-      { id: maya, name: 'Maya', color: PERSON_COLORS[0] },
-      { id: jordan, name: 'Jordan', color: PERSON_COLORS[1] },
-      { id: priya, name: 'Priya', color: PERSON_COLORS[2] },
+      {
+        id: maya,
+        name: 'Maya',
+        color: PERSON_COLORS[0],
+        paymentMethods: [
+          {
+            id: uid(),
+            kind: 'bank',
+            label: 'BCA',
+            accountName: 'Maya Putri',
+            accountNumber: '1234567890',
+          },
+        ],
+      },
+      {
+        id: jordan,
+        name: 'Jordan',
+        color: PERSON_COLORS[1],
+        paymentMethods: [
+          {
+            id: uid(),
+            kind: 'paypal',
+            label: 'PayPal',
+            accountName: 'Jordan Lee',
+            accountNumber: 'jordan@example.com',
+          },
+        ],
+      },
+      {
+        id: priya,
+        name: 'Priya',
+        color: PERSON_COLORS[2],
+        paymentMethods: [
+          {
+            id: uid(),
+            kind: 'wise',
+            label: 'Wise',
+            accountName: 'Priya Shah',
+            accountNumber: 'priya@example.com',
+          },
+        ],
+      },
       { id: alex, name: 'Alex', color: PERSON_COLORS[3] },
     ],
     categories: defaultCategories(),

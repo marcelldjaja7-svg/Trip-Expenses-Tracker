@@ -1,5 +1,6 @@
 import type { PersonBalance, Transfer, Trip } from '../types'
-import { formatMoney } from './money'
+import { convertAmount, formatMoney } from './money'
+import { formatPaymentMethod, primaryPayment } from './payments'
 import { computeBalances, suggestedTransfers } from './settle'
 import { normalizeTrip } from './storage'
 
@@ -117,8 +118,15 @@ export function slugify(name: string): string {
   )
 }
 
-export function describeTransfer(trip: Trip, t: Transfer): string {
+export function describeTransfer(trip: Trip, t: Transfer, payCurrency?: string): string {
   const from = trip.people.find((p) => p.id === t.fromId)?.name ?? 'Friend'
-  const to = trip.people.find((p) => p.id === t.toId)?.name ?? 'Friend'
-  return `${from} pays ${to} ${formatMoney(t.amount, trip.baseCurrency)}`
+  const toPerson = trip.people.find((p) => p.id === t.toId)
+  const to = toPerson?.name ?? 'Friend'
+  const lines = [`${from} pays ${to} ${formatMoney(t.amount, trip.baseCurrency)}`]
+  if (payCurrency && payCurrency !== trip.baseCurrency) {
+    lines.push(`≈ ${formatMoney(convertAmount(t.amount, trip.baseCurrency, payCurrency, trip), payCurrency)}`)
+  }
+  const pay = primaryPayment(toPerson)
+  if (pay) lines.push(`Pay ${to}: ${formatPaymentMethod(pay)}`)
+  return lines.join('\n')
 }

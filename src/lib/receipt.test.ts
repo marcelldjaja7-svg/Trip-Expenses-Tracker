@@ -35,6 +35,9 @@ describe('inferCurrency', () => {
     expect(inferCurrency('eur', 'IDR')).toBe('EUR')
     expect(inferCurrency('$', 'IDR')).toBe('USD')
     expect(inferCurrency('$', 'SGD')).toBe('SGD')
+    expect(inferCurrency('NOK', 'IDR')).toBe('NOK')
+    expect(inferCurrency('danish', 'IDR')).toBe('DKK')
+    expect(inferCurrency('ISK', 'EUR')).toBe('ISK')
   })
 })
 
