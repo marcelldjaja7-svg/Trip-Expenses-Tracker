@@ -1,7 +1,8 @@
-import type { AppData, Category, Expense, Person, Trip } from '../types'
+import type { AppData, Category, Expense, PaymentMethod, Person, Trip } from '../types'
 import { CURRENCY_CODES, DEFAULT_BASE_CURRENCY, ratesForBase } from './currencies'
 import { PERSON_COLORS } from './colors'
 import { defaultCategories } from './demo'
+import { emptyPaymentMethod, isPaymentKind } from './payments'
 
 export const STORAGE_KEY = 'triptab.v1'
 
@@ -106,11 +107,29 @@ function normalizePerson(input: unknown): Person | null {
   if (!input || typeof input !== 'object') return null
   const raw = input as Record<string, unknown>
   if (typeof raw.id !== 'string' || typeof raw.name !== 'string') return null
+  const paymentMethods = Array.isArray(raw.paymentMethods)
+    ? raw.paymentMethods.map(normalizePaymentMethod).filter((m): m is PaymentMethod => Boolean(m))
+    : undefined
   return {
     id: raw.id,
     name: raw.name.trim() || 'Friend',
     color: typeof raw.color === 'string' ? raw.color : PERSON_COLORS[0],
+    ...(paymentMethods && paymentMethods.length ? { paymentMethods } : {}),
   }
+}
+
+function normalizePaymentMethod(input: unknown): PaymentMethod | null {
+  if (!input || typeof input !== 'object') return null
+  const raw = input as Record<string, unknown>
+  const kind = typeof raw.kind === 'string' && isPaymentKind(raw.kind) ? raw.kind : 'other'
+  const id = typeof raw.id === 'string' && raw.id ? raw.id : crypto.randomUUID()
+  const method = emptyPaymentMethod(id, kind)
+  if (typeof raw.label === 'string') method.label = raw.label.trim().slice(0, 80)
+  if (typeof raw.accountName === 'string') method.accountName = raw.accountName.trim().slice(0, 80)
+  if (typeof raw.accountNumber === 'string') method.accountNumber = raw.accountNumber.trim().slice(0, 80)
+  if (typeof raw.details === 'string') method.details = raw.details.trim().slice(0, 120)
+  if (!method.label && !method.accountName && !method.accountNumber && !method.details) return null
+  return method
 }
 
 function normalizeCategory(input: unknown): Category | null {

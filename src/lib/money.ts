@@ -1,5 +1,5 @@
 import type { Expense, SplitMode, Trip } from '../types'
-import { currencyDecimals } from './currencies'
+import { currencyDecimals, ratesForBase } from './currencies'
 
 export function roundTo(amount: number, decimals: number): number {
   const f = 10 ** decimals
@@ -51,7 +51,20 @@ export function rateToBase(trip: Trip, currency: string): number {
   if (currency === trip.baseCurrency) return 1
   const rate = trip.rates[currency]
   if (typeof rate === 'number' && rate > 0) return rate
+  const fallback = ratesForBase(trip.baseCurrency)[currency]
+  if (typeof fallback === 'number' && fallback > 0) return fallback
   return 1
+}
+
+/** Convert `amount` in `from` into `to` using this trip’s rates (starter rates if a code is missing). */
+export function convertAmount(amount: number, from: string, to: string, trip: Trip): number {
+  if (!Number.isFinite(amount)) return 0
+  const toDecimals = currencyDecimals(to)
+  if (from === to) return roundTo(amount, toDecimals)
+  const inBase = amount * rateToBase(trip, from)
+  const toRate = rateToBase(trip, to)
+  if (!toRate) return 0
+  return roundTo(inBase / toRate, toDecimals)
 }
 
 export function toBase(amount: number, currency: string, trip: Trip): number {

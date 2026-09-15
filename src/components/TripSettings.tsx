@@ -1,13 +1,14 @@
-import { Copy, Download, RefreshCw, Share, Trash2, Upload } from 'lucide-react'
+import { Copy, Download, Plus, RefreshCw, Share, Trash2, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PERSON_COLORS, TRIP_EMOJIS } from '../lib/colors'
 import { convertRatesToNewBase, CURRENCIES, fetchLiveRates } from '../lib/currencies'
 import { inverseRate, roundTo } from '../lib/money'
+import { accountPlaceholder, emptyPaymentMethod, PAYMENT_KINDS } from '../lib/payments'
 import { downloadJson, shareUrlForTrip, slugify, tripSummaryText } from '../lib/share'
 import { normalizeAppData, normalizeTrip } from '../lib/storage'
 import { cn, uid } from '../lib/utils'
 import { useStore } from '../state'
-import type { Trip } from '../types'
+import type { PaymentKind, PaymentMethod, Person, Trip } from '../types'
 import { ScanSettings } from './ScanSettings'
 import { Avatar, Group, GroupRow, SectionLabel, Select, TextInput } from './ui'
 
@@ -28,7 +29,11 @@ export function TripSettings({
   const [newCat, setNewCat] = useState('')
 
   const usedCurrencies = Array.from(
-    new Set([trip.baseCurrency, ...trip.expenses.map((e) => e.currency), ...CURRENCIES.map((c) => c.code)]),
+    new Set([
+      trip.baseCurrency,
+      ...trip.expenses.map((e) => e.currency),
+      ...CURRENCIES.map((c) => c.code),
+    ]),
   )
 
   const copySummary = async () => {
@@ -133,55 +138,28 @@ export function TripSettings({
       </Group>
 
       <SectionLabel>Friends</SectionLabel>
+      <p className="mb-2 px-4 text-[13px] text-[var(--muted)]">
+        Add how each person gets paid. Settle uses this so you know where to send money.
+      </p>
       <Group>
         {trip.people.map((p) => (
-          <GroupRow key={p.id} inset className="flex-wrap py-3">
-            <Avatar person={p} />
-            <TextInput
-              className="min-w-[7rem] flex-1 rounded-xl bg-[var(--fill)] px-3 py-2 dark:bg-black/25"
-              value={p.name}
-              onChange={(e) =>
-                onChange({
-                  ...trip,
-                  people: trip.people.map((x) => (x.id === p.id ? { ...x, name: e.target.value } : x)),
-                })
+          <FriendCard
+            key={p.id}
+            person={p}
+            onChange={(next) =>
+              onChange({
+                ...trip,
+                people: trip.people.map((x) => (x.id === p.id ? next : x)),
+              })
+            }
+            onRemove={() => {
+              if (involved(p.id)) {
+                onNotify('This friend is on an expense — remove those first')
+                return
               }
-            />
-            <div className="flex gap-1">
-              {PERSON_COLORS.slice(0, 6).map((c) => (
-                <button
-                  type="button"
-                  key={c}
-                  aria-label={`Color ${c}`}
-                  className={cn(
-                    'h-5 w-5 rounded-full',
-                    p.color === c && 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--grouped)]',
-                  )}
-                  style={{ background: c }}
-                  onClick={() =>
-                    onChange({
-                      ...trip,
-                      people: trip.people.map((x) => (x.id === p.id ? { ...x, color: c } : x)),
-                    })
-                  }
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              className="text-[var(--danger)]"
-              aria-label={`Remove ${p.name}`}
-              onClick={() => {
-                if (involved(p.id)) {
-                  onNotify('This friend is on an expense — remove those first')
-                  return
-                }
-                onChange({ ...trip, people: trip.people.filter((x) => x.id !== p.id) })
-              }}
-            >
-              <Trash2 size={16} strokeWidth={1.75} />
-            </button>
-          </GroupRow>
+              onChange({ ...trip, people: trip.people.filter((x) => x.id !== p.id) })
+            }}
+          />
         ))}
         <GroupRow>
           <TextInput
@@ -296,7 +274,6 @@ export function TripSettings({
         </GroupRow>
         {usedCurrencies
           .filter((code, i, arr) => arr.indexOf(code) === i && code !== trip.baseCurrency)
-          .slice(0, 18)
           .map((code) => {
             const rate = trip.rates[code] ?? 1
             return (
@@ -391,6 +368,127 @@ export function TripSettings({
       <p className="mt-2 px-4 text-[13px] text-[var(--muted)]">
         Deletes this trip from this browser. Export first if you might need it.
       </p>
+    </div>
+  )
+}
+
+function FriendCard({
+  person,
+  onChange,
+  onRemove,
+}: {
+  person: Person
+  onChange: (person: Person) => void
+  onRemove: () => void
+}) {
+  const methods = person.paymentMethods ?? []
+  const patchMethod = (id: string, patch: Partial<PaymentMethod>) => {
+    onChange({
+      ...person,
+      paymentMethods: methods.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+    })
+  }
+
+  return (
+    <div className="row-sep space-y-2 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Avatar person={person} />
+        <TextInput
+          className="min-w-[7rem] flex-1 rounded-xl bg-[var(--fill)] px-3 py-2 dark:bg-black/25"
+          value={person.name}
+          onChange={(e) => onChange({ ...person, name: e.target.value })}
+        />
+        <div className="flex gap-1">
+          {PERSON_COLORS.slice(0, 6).map((c) => (
+            <button
+              type="button"
+              key={c}
+              aria-label={`Color ${c}`}
+              className={cn(
+                'h-5 w-5 rounded-full',
+                person.color === c && 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--grouped)]',
+              )}
+              style={{ background: c }}
+              onClick={() => onChange({ ...person, color: c })}
+            />
+          ))}
+        </div>
+        <button type="button" className="text-[var(--danger)]" aria-label={`Remove ${person.name}`} onClick={onRemove}>
+          <Trash2 size={16} strokeWidth={1.75} />
+        </button>
+      </div>
+
+      {methods.map((method) => (
+        <div key={method.id} className="space-y-2 rounded-[12px] bg-[var(--fill)] p-3 dark:bg-black/20">
+          <div className="flex items-center gap-2">
+            <Select
+              className="flex-1 rounded-xl bg-[var(--grouped)] px-3 py-2 text-[15px] dark:bg-black/30"
+              value={method.kind}
+              aria-label={`${person.name} payment type`}
+              onChange={(e) => patchMethod(method.id, { kind: e.target.value as PaymentKind })}
+            >
+              {PAYMENT_KINDS.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label}
+                </option>
+              ))}
+            </Select>
+            <button
+              type="button"
+              className="text-[13px] font-medium text-[var(--danger)]"
+              aria-label={`Remove payment method for ${person.name}`}
+              onClick={() =>
+                onChange({
+                  ...person,
+                  paymentMethods: methods.filter((m) => m.id !== method.id),
+                })
+              }
+            >
+              Remove
+            </button>
+          </div>
+          {method.kind !== 'cash' && (
+            <TextInput
+              className="rounded-xl bg-[var(--grouped)] px-3 py-2 text-[15px] dark:bg-black/30"
+              placeholder={method.kind === 'bank' ? 'Bank name' : 'App or nickname'}
+              value={method.label}
+              onChange={(e) => patchMethod(method.id, { label: e.target.value })}
+            />
+          )}
+          <TextInput
+            className="rounded-xl bg-[var(--grouped)] px-3 py-2 text-[15px] dark:bg-black/30"
+            placeholder="Account name"
+            value={method.accountName ?? ''}
+            onChange={(e) => patchMethod(method.id, { accountName: e.target.value })}
+          />
+          <TextInput
+            className="rounded-xl bg-[var(--grouped)] px-3 py-2 text-[15px] dark:bg-black/30"
+            placeholder={accountPlaceholder(method.kind)}
+            value={method.accountNumber ?? ''}
+            onChange={(e) => patchMethod(method.id, { accountNumber: e.target.value })}
+            autoComplete="off"
+          />
+          <TextInput
+            className="rounded-xl bg-[var(--grouped)] px-3 py-2 text-[15px] dark:bg-black/30"
+            placeholder="SWIFT, branch, or note"
+            value={method.details ?? ''}
+            onChange={(e) => patchMethod(method.id, { details: e.target.value })}
+          />
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className="inline-flex min-h-[36px] items-center gap-1 text-[15px] font-medium text-[var(--accent)]"
+        onClick={() =>
+          onChange({
+            ...person,
+            paymentMethods: [...methods, emptyPaymentMethod(uid())],
+          })
+        }
+      >
+        <Plus size={14} strokeWidth={2.25} /> Add payment method
+      </button>
     </div>
   )
 }

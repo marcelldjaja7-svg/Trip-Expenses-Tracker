@@ -1,6 +1,6 @@
 # TripTab — trip expense splitter
 
-A local-first web app for splitting shared trip costs with friends. Multi-currency (settle in **IDR** by default), equal / amount / percent splits, settle-up suggestions, and no account required. Opens in **dark mode**, with an Apple-like iOS interface (grouped lists, system-blue controls, light mode available).
+A local-first web app for splitting shared trip costs with friends. Multi-currency (settle in **IDR** by default, plus USD, EUR, ISK, DKK, NOK, and other popular currencies), equal / amount / percent splits, settle-up suggestions, and no account required. Opens in **dark mode**, with an Apple-like iOS interface (grouped lists, system-blue controls, light mode available).
 
 ## Run locally
 
@@ -53,15 +53,15 @@ No API keys are required to use TripTab. Optional extras:
 
 ## How to use (with your group)
 
-1. **Create a trip** — name it, pick a vibe emoji, optional dates, and a home/base currency. New trips default to **Indonesian Rupiah (IDR)**. You can still settle in USD, SGD, etc.
-2. **Add friends** — everyone on the trip. You can rename or recolor them later.
+1. **Create a trip** — name it, pick a vibe emoji, optional dates, and a home/base currency. New trips default to **Indonesian Rupiah (IDR)**. You can still settle in USD, EUR, ISK, DKK, NOK, SEK, and other popular currencies.
+2. **Add friends** — everyone on the trip. Under **Trip**, add payment methods and account info (bank / IBAN, e-wallet, PayPal, Wise, Venmo, cash) so settle suggestions show where to send money.
 3. **Log expenses** — amount, currency, who paid, who is on the bill, category, note, date. Or **Scan bill** from a photo and then confirm.
    - **Equal** — split evenly among people marked **In**.
    - **Amounts** — type each person’s share.
    - **%** — split by percentage (must add up to 100%).
    - Tap **Out** to exclude someone from that expense. **Everyone** / **Just payer** are shortcuts.
 4. **Set conversion rates** — when an expense isn’t in IDR (or your chosen base), set e.g. “1 USD = 16200 IDR”. Edit rates anytime under **Trip**. Live fetch is a shortcut, not a requirement.
-5. **Settle up** — open the settle tab for net balances and the fewest suggested payments. Copy a payment, or tap **Log payment** after someone actually pays.
+5. **Settle up** — open the settle tab for net balances and the fewest suggested payments. Use **Pay in** and the **converter** to see how much that is in another currency. Copy a payment (includes account details), or tap **Log payment** after someone actually pays.
 6. **Share with friends** — tap share / **Invite Friends** for a **live** link so everyone can add expenses on their own phone. Copy a text summary or download JSON as a backup.
 
 Use the sun/moon control to switch light and dark. There’s a **Bali demo trip** on the home screen if you want to click around before creating your own.

@@ -2,10 +2,23 @@ export type Theme = 'light' | 'dark'
 
 export type SplitMode = 'equal' | 'custom' | 'percent'
 
+export type PaymentKind = 'bank' | 'ewallet' | 'paypal' | 'wise' | 'venmo' | 'cash' | 'other'
+
+export type PaymentMethod = {
+  id: string
+  kind: PaymentKind
+  /** Bank, app, or nickname — e.g. BCA, GoPay, Wise. */
+  label: string
+  accountName?: string
+  accountNumber?: string
+  details?: string
+}
+
 export type Person = {
   id: string
   name: string
   color: string
+  paymentMethods?: PaymentMethod[]
 }
 
 export type Category = {

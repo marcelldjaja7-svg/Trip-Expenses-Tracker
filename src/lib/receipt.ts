@@ -76,6 +76,30 @@ const SYMBOL_TO_CODE: Record<string, string> = {
   PHP: 'PHP',
   VND: 'VND',
   DONG: 'VND',
+  ISK: 'ISK',
+  DKK: 'DKK',
+  DKR: 'DKK',
+  NOK: 'NOK',
+  NKR: 'NOK',
+  SEK: 'SEK',
+  SKR: 'SEK',
+  PLN: 'PLN',
+  CZK: 'CZK',
+  HUF: 'HUF',
+  RON: 'RON',
+  BGN: 'BGN',
+  TRY: 'TRY',
+  TL: 'TRY',
+  BRL: 'BRL',
+  R$: 'BRL',
+  MXN: 'MXN',
+  MX$: 'MXN',
+  AED: 'AED',
+  SAR: 'SAR',
+  ILS: 'ILS',
+  TWD: 'TWD',
+  NT$: 'TWD',
+  ZAR: 'ZAR',
 }
 
 export function inferCurrency(raw: unknown, baseCurrency: string): string | undefined {
@@ -91,6 +115,10 @@ export function inferCurrency(raw: unknown, baseCurrency: string): string | unde
   if (text.includes('€') || text.includes('EUR')) return 'EUR'
   if (text.includes('£') || text.includes('GBP')) return 'GBP'
   if (text.includes('¥') && !text.includes('CNY')) return 'JPY'
+  if (text.includes('NOK') || text.includes('NORWEGIAN')) return 'NOK'
+  if (text.includes('DKK') || text.includes('DANISH')) return 'DKK'
+  if (text.includes('ISK') || text.includes('ICELAND')) return 'ISK'
+  if (text.includes('SEK') || text.includes('SWEDISH')) return 'SEK'
   if (text === '$') return baseCurrency === 'SGD' || baseCurrency === 'AUD' || baseCurrency === 'CAD' ? baseCurrency : 'USD'
   return CURRENCY_CODES.includes(text.slice(0, 3)) ? text.slice(0, 3) : undefined
 }

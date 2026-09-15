@@ -128,7 +128,7 @@ export function tripFingerprint(trip: Trip): string {
   return [
     trip.updatedAt,
     trip.name,
-    trip.people.map((p) => `${p.id}:${p.name}`).join(','),
+    trip.people.map((p) => `${p.id}:${p.name}:${(p.paymentMethods ?? []).map((m) => m.id + m.accountNumber).join(',')}`).join(','),
     trip.expenses.map((e) => `${e.id}:${e.updatedAt ?? e.createdAt}:${e.amount}`).join(','),
     (trip.deletedExpenseIds ?? []).join(','),
   ].join('|')
