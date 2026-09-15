@@ -28,6 +28,8 @@ export type Expense = {
   date: string
   createdAt: number
   updatedAt?: number
+  /** Items identified from a receipt photo. Optional; never required to split. */
+  lineItems?: { name: string; amount: number }[]
 }
 
 export type Trip = {

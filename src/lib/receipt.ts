@@ -209,7 +209,7 @@ export function normalizeReceiptScan(
           return { name: name.slice(0, 60), amount: lineAmount }
         })
         .filter((x): x is ReceiptLine => Boolean(x))
-        .slice(0, 8)
+        .slice(0, 20)
     : undefined
   const scan: ReceiptScan = {}
   if (amount !== undefined) scan.amount = amount
@@ -220,6 +220,15 @@ export function normalizeReceiptScan(
   if (categoryId) scan.categoryId = categoryId
   if (lineItems && lineItems.length) scan.lineItems = lineItems
   return scan
+}
+
+export function noteFromScan(merchantOrNote: string, items: ReceiptLine[]): string {
+  const head = merchantOrNote.trim()
+  if (!items.length) return head
+  const names = items.map((item) => item.name).filter(Boolean)
+  if (!names.length) return head
+  if (head && names.some((name) => head.toLowerCase().includes(name.toLowerCase()))) return head
+  return [head, names.join(', ')].filter(Boolean).join(' · ').slice(0, 120)
 }
 
 export function extractJsonObject(text: string): unknown {
@@ -251,8 +260,8 @@ Rules:
 - Indonesian receipts often use "." as thousands (88.000 means 88000 IDR). Return the numeric amount, not a formatted string.
 - date is the receipt date if clearly visible, else null.
 - category must be one of: ${cats}
-- note should be a short human label (merchant or what was bought).
-- lineItems optional, max 8, skip if unclear.
+- note should be a short human label (merchant name).
+- lineItems: list every distinct item/dish/product with its line price. Include up to 20. Skip tax/service/change/subtotal rows. If quantities exist, one row per product (name may include qty). Always fill lineItems when any items are readable.
 If this is not a receipt, still guess amount if any total is visible; otherwise nulls.`
 }
 

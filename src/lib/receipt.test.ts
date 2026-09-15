@@ -3,6 +3,7 @@ import {
   extractJsonObject,
   guessCategoryId,
   inferCurrency,
+  noteFromScan,
   normalizeReceiptScan,
   parseAmountValue,
   parseScanDate,
@@ -82,6 +83,30 @@ describe('normalizeReceiptScan', () => {
     expect(scan.date).toBe(iso)
     expect(scan.categoryId).toBe('food')
     expect(scan.lineItems?.[0]?.name).toBe('Nasi campur')
+  })
+
+  it('keeps at most 20 line items', () => {
+    const scan = normalizeReceiptScan(
+      {
+        amount: 100,
+        currency: 'IDR',
+        merchant: 'Warung',
+        lineItems: Array.from({ length: 25 }, (_, i) => ({ name: `Item ${i + 1}`, amount: i + 1 })),
+      },
+      { baseCurrency: 'IDR', categories: cats },
+    )
+    expect(scan.lineItems).toHaveLength(20)
+    expect(scan.lineItems?.[0]?.name).toBe('Item 1')
+    expect(scan.lineItems?.[19]?.name).toBe('Item 20')
+  })
+
+  it('joins merchant and item names for the expense note', () => {
+    expect(
+      noteFromScan('Warung Made', [
+        { name: 'Nasi campur', amount: 45000 },
+        { name: 'Es teh', amount: 8000 },
+      ]),
+    ).toBe('Warung Made · Nasi campur, Es teh')
   })
 
   it('falls back to trip base currency', () => {

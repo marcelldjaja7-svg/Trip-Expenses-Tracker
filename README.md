@@ -17,7 +17,7 @@ On your phone on the same Wi‑Fi, you can also use your computer’s LAN addres
 
 1. Deploy TripTab so it has a public URL. After this repo is on GitHub, turn on **Settings → Pages → GitHub Actions**, merge to `main`, and open:
    `https://<your-github-username>.github.io/Trip-Expenses-Tracker/`
-2. Create a trip, tap the **share** button (or **Trip → Start Live Trip / Invite Friends**).
+2. Create a trip, add friends under **Trip**, then tap **Let friends add expenses** (or the share button / **Trip → Start Live Trip / Invite Friends**).
 3. Send that link (it looks like `…/Trip-Expenses-Tracker/?t=…`). Friends open it on any phone, and expenses they add show up for everyone on the same link (the trip syncs every few seconds). Anyone with the link can edit.
 
 Until the site is deployed, a live invite copied from `localhost` only works on this computer.
@@ -48,8 +48,8 @@ No API keys are required to use TripTab. Optional extras:
 
 1. Add TripTab to your Home Screen (Share → Add to Home Screen on iOS, or Chrome’s install prompt on Android) so it feels like an app.
 2. Optional: paste a Gemini API key under **Scan bills**.
-3. Open a trip → **Add Expense** → **Take Photo** or **Library**.
-4. Review amount, currency, note, date, and category. Edit anything. Tap **Add Expense** to save — scans never auto-save.
+3. Open a trip → **Scan a bill** (or **Add Expense**). Paste a Gemini key in that sheet if you have not saved one yet, then **Take Photo** or **Library**.
+4. Review the identified items, total, currency, note, date, and category. Edit anything. Tap **Add Expense** to save — scans never auto-save. The item list stays on the expense so you can reopen it.
 
 ## How to use (with your group)
 
