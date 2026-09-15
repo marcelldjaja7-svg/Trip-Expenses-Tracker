@@ -52,17 +52,17 @@ export function BalancesView({
           <p className="mt-8 pb-4 text-center text-[15px] text-[#d9c48a]/70">Add friends to open the table.</p>
         ) : (
           <>
-            <div className="mt-8 flex items-end justify-center gap-3 sm:gap-6">
+            <div className="mt-5 flex items-end justify-center gap-3 sm:gap-5">
               {second ? <PodiumSeat place={2} person={second.person} paid={second.paid} currency={trip.baseCurrency} /> : <span className="w-[5.5rem]" />}
               {first ? <PodiumSeat place={1} person={first.person} paid={first.paid} currency={trip.baseCurrency} /> : null}
               {third ? <PodiumSeat place={3} person={third.person} paid={third.paid} currency={trip.baseCurrency} /> : <span className="w-[5.5rem]" />}
             </div>
 
-            <ol className="mt-7 space-y-1">
+            <ol className="mt-4 space-y-0.5">
               {ranked.map((row, index) => (
                 <li
                   key={row.personId}
-                  className="flex items-center gap-3 rounded-[16px] px-2 py-2.5"
+                  className="flex items-center gap-3 rounded-[14px] px-2 py-1.5"
                 >
                   <span className="w-7 text-center font-semibold tabular-nums text-[#d4af37]/80">
                     {String(index + 1).padStart(2, '0')}
