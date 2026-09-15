@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { CURRENCIES } from '../lib/currencies'
 import {
   equalPercents,
   equalShares,
@@ -14,6 +13,7 @@ import type { ReceiptScan } from '../lib/receipt'
 import { cn, todayISO, uid } from '../lib/utils'
 import type { Expense, SplitMode, Trip } from '../types'
 import { BillScanPanel, ScanLines } from './BillScan'
+import { CurrencyPicker } from './CurrencyPicker'
 import { Avatar, Button, Group, GroupRow, Modal, Segmented, TextInput } from './ui'
 
 type Props = {
@@ -208,22 +208,15 @@ export function ExpenseForm({ trip, expense, open, onClose, onSave, onDelete }: 
             </GroupRow>
             <GroupRow>
               <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Currency</span>
-              <select
-                className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-right text-[17px] outline-none"
+              <CurrencyPicker
+                showName={false}
                 value={currency}
-                onChange={(e) => {
-                  const code = e.target.value
+                onChange={(code) => {
                   setCurrency(code)
                   const existing = trip.rates[code]
                   setRateDraft(existing ? String(roundTo(existing, 8)) : '1')
                 }}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code}
-                  </option>
-                ))}
-              </select>
+              />
             </GroupRow>
             <GroupRow>
               <span className="w-[5.75rem] shrink-0 text-[17px] text-[var(--muted)]">Date</span>

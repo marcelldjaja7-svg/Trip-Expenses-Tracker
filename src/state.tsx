@@ -32,6 +32,7 @@ type StoreValue = {
     baseCurrency: string
     startDate?: string
     endDate?: string
+    destinationId?: string
     people: string[]
   }) => Trip
   saveTrip: (trip: Trip) => void
@@ -200,7 +201,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         else clearLiveShareLocation()
       },
       createTrip: (input) => {
-        const trip = emptyTrip(input.name, input.emoji, input.baseCurrency)
+        const trip = emptyTrip(input.name, input.emoji, input.baseCurrency, input.destinationId)
         trip.startDate = input.startDate ?? ''
         trip.endDate = input.endDate ?? ''
         const colors: string[] = []

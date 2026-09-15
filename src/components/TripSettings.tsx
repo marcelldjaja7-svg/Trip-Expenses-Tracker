@@ -1,13 +1,15 @@
 import { Copy, Download, RefreshCw, Share, Trash2, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { PERSON_COLORS, TRIP_EMOJIS } from '../lib/colors'
-import { convertRatesToNewBase, CURRENCIES, fetchLiveRates } from '../lib/currencies'
+import { convertRatesToNewBase, CURRENCY_CODES, fetchLiveRates } from '../lib/currencies'
+import { DESTINATIONS } from '../lib/destinations'
 import { inverseRate, roundTo } from '../lib/money'
 import { downloadJson, shareUrlForTrip, slugify, tripSummaryText } from '../lib/share'
 import { normalizeAppData, normalizeTrip } from '../lib/storage'
 import { cn, uid } from '../lib/utils'
 import { useStore } from '../state'
 import type { Trip } from '../types'
+import { CurrencyPicker } from './CurrencyPicker'
 import { ScanSettings } from './ScanSettings'
 import { Avatar, Group, GroupRow, SectionLabel, Select, TextInput } from './ui'
 
@@ -28,7 +30,7 @@ export function TripSettings({
   const [newCat, setNewCat] = useState('')
 
   const usedCurrencies = Array.from(
-    new Set([trip.baseCurrency, ...trip.expenses.map((e) => e.currency), ...CURRENCIES.map((c) => c.code)]),
+    new Set([trip.baseCurrency, ...trip.expenses.map((e) => e.currency), ...CURRENCY_CODES]),
   )
 
   const copySummary = async () => {
@@ -111,21 +113,33 @@ export function TripSettings({
         </GroupRow>
         <GroupRow>
           <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">Currency</span>
-          <Select
-            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+          <CurrencyPicker
             value={trip.baseCurrency}
-            onChange={(e) => {
-              const base = e.target.value
+            onChange={(base) =>
               onChange({
                 ...trip,
                 baseCurrency: base,
                 rates: convertRatesToNewBase(trip.rates, base),
               })
-            }}
+            }
+          />
+        </GroupRow>
+        <GroupRow>
+          <span className="w-[5.5rem] shrink-0 text-[17px] text-[var(--muted)]">Place</span>
+          <Select
+            className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+            value={trip.destinationId ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...trip,
+                destinationId: e.target.value || undefined,
+              })
+            }
           >
-            {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.code} — {c.name}
+            <option value="">Match from name</option>
+            {DESTINATIONS.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.place}
               </option>
             ))}
           </Select>

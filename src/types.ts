@@ -37,6 +37,8 @@ export type Trip = {
   startDate: string
   endDate: string
   baseCurrency: string
+  /** Pinned photo backdrop. When omitted, the destination is inferred from name/emoji. */
+  destinationId?: string
   people: Person[]
   categories: Category[]
   expenses: Expense[]
