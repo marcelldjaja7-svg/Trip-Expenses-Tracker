@@ -1,12 +1,14 @@
 import { Download, Map, Plus, Upload } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { TRIP_EMOJIS } from '../lib/colors'
 import { CURRENCIES, DEFAULT_BASE_CURRENCY } from '../lib/currencies'
+import { DESTINATIONS, resolveDestination } from '../lib/destinations'
 import { formatMoney, tripTotalBase } from '../lib/money'
 import { downloadJson } from '../lib/share'
 import { cn, todayISO } from '../lib/utils'
 import { useStore } from '../state'
 import { ScanSettings } from './ScanSettings'
+import { DestinationThumb } from './TripHero'
 import {
   AvatarStack,
   Button,
@@ -77,9 +79,7 @@ export function HomePage() {
           <Group>
             {data.trips.map((trip) => (
               <GroupRow key={trip.id} inset onClick={() => selectTrip(trip.id)} className="fade-up py-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[var(--fill)] text-[18px]">
-                  {trip.emoji}
-                </span>
+                <DestinationThumb trip={trip} className="h-12 w-12 shrink-0 rounded-[12px]" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[17px] font-semibold">{trip.name}</span>
                   <span className="mt-0.5 flex items-center gap-2 text-[13px] text-[var(--muted)]">
@@ -158,6 +158,7 @@ function NewTripModal({
     baseCurrency: string
     startDate?: string
     endDate?: string
+    destinationId?: string
     people: string[]
   }) => void
 }) {
@@ -167,12 +168,30 @@ function NewTripModal({
   const [startDate, setStartDate] = useState(todayISO())
   const [endDate, setEndDate] = useState('')
   const [people, setPeople] = useState(['', ''])
+  const [destinationId, setDestinationId] = useState<string | 'auto'>('auto')
+  const preview = useMemo(
+    () =>
+      resolveDestination({
+        name,
+        emoji,
+        destinationId: destinationId === 'auto' ? undefined : destinationId,
+      }),
+    [name, emoji, destinationId],
+  )
 
   const submit = () => {
     const names = people.map((p) => p.trim()).filter(Boolean)
     if (!name.trim()) return
     if (names.length < 1) return
-    onCreate({ name, emoji, baseCurrency, startDate, endDate, people: names })
+    onCreate({
+      name,
+      emoji,
+      baseCurrency,
+      startDate,
+      endDate,
+      destinationId: destinationId === 'auto' ? preview.id : destinationId,
+      people: names,
+    })
     onClose()
     setName('')
     setPeople(['', ''])
@@ -239,8 +258,29 @@ function NewTripModal({
               ))}
             </Select>
           </FieldBlock>
+          <FieldBlock label="Place">
+            <Select
+              className="rounded-none bg-transparent px-0 py-0 text-right dark:bg-transparent"
+              value={destinationId}
+              onChange={(e) => setDestinationId(e.target.value as typeof destinationId)}
+            >
+              <option value="auto">Match from name ({preview.place})</option>
+              {DESTINATIONS.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.place}
+                </option>
+              ))}
+            </Select>
+          </FieldBlock>
         </Group>
-        <p className="px-4 text-[13px] text-[var(--muted)]">You’ll settle up in this currency. IDR is the default.</p>
+        <div className="overflow-hidden rounded-[16px]">
+          <div className="relative h-28">
+            <img src={preview.photo} alt={preview.place} className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/10" />
+            <p className="absolute bottom-3 left-3 text-[13px] font-semibold text-white">{preview.place}</p>
+          </div>
+        </div>
+        <p className="px-4 text-[13px] text-[var(--muted)]">You’ll settle up in this currency. IDR is the default. The photo is a real place that matches the trip.</p>
 
         <SectionLabel>Friends</SectionLabel>
         <Group>

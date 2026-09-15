@@ -87,6 +87,7 @@ export function normalizeTrip(input: unknown): Trip | null {
     startDate: typeof raw.startDate === 'string' ? raw.startDate : '',
     endDate: typeof raw.endDate === 'string' ? raw.endDate : '',
     baseCurrency,
+    destinationId: typeof raw.destinationId === 'string' && raw.destinationId ? raw.destinationId : undefined,
     people,
     categories,
     expenses,

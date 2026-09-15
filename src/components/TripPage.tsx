@@ -6,8 +6,9 @@ import { useStore } from '../state'
 import type { Expense, Trip } from '../types'
 import { BalancesView } from './BalancesView'
 import { ExpenseForm } from './ExpenseForm'
+import { TripHero } from './TripHero'
 import { TripSettings } from './TripSettings'
-import { Avatar, Button, Chevron, Group, GroupRow, Screen, SectionLabel } from './ui'
+import { Avatar, Button, Chevron, Group, GroupRow, Screen, SectionLabel, ThemeToggle } from './ui'
 
 type Tab = 'expenses' | 'settle' | 'settings'
 
@@ -69,6 +70,7 @@ export function TripPage({ trip }: { trip: Trip }) {
           <TabBtn on={tab === 'settings'} onClick={() => setTab('settings')} icon={<Settings2 size={15} strokeWidth={1.75} />} label="Trip" compact />
         </div>
         <div className="mr-1 flex items-center gap-1">
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => void shareWithFriends(trip)}
@@ -93,27 +95,10 @@ export function TripPage({ trip }: { trip: Trip }) {
       </div>
 
       <header className="pt-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="large-title flex items-center gap-2">
-              <span className="text-[28px] leading-none">{trip.emoji}</span>
-              <span className="truncate">{trip.name}</span>
-            </h1>
-            <p className="mt-1 text-[15px] text-[var(--muted)]">
-              {trip.startDate && trip.endDate ? `${trip.startDate} → ${trip.endDate}` : trip.startDate || 'Open dates'}
-              {' · '}
-              {trip.people.length} {trip.people.length === 1 ? 'person' : 'people'}
-              {' · '}
-              {trip.baseCurrency}
-            </p>
-            {trip.shareId && (
-              <p className="mt-2 inline-flex items-center rounded-full bg-[var(--accent)]/15 px-2.5 py-1 text-[12px] font-semibold text-[var(--accent)]">
-                Live · friends can add expenses
-              </p>
-            )}
-          </div>
-        </div>
-
+        <TripHero
+          trip={trip}
+          onDestinationChange={(destinationId) => saveTrip({ ...trip, destinationId })}
+        />
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="rounded-[12px] bg-[var(--grouped)] px-4 py-3">
             <p className="text-[13px] text-[var(--muted)]">Spent</p>
@@ -128,11 +113,6 @@ export function TripPage({ trip }: { trip: Trip }) {
             </p>
           </div>
         </div>
-        {trip.isDemo && (
-          <p className="mt-3 rounded-[12px] bg-[var(--fill)] px-3.5 py-2.5 text-[13px] text-[var(--muted)]">
-            Sample Bali data so you can look around. Start a real trip anytime — or edit this one.
-          </p>
-        )}
       </header>
 
       <div className="mt-2">
