@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, Receipt, Scale, Settings2, Share } from 'lucide-react'
+import { ArrowLeft, Plus, Receipt, Scale, Settings2, Share, Trophy } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { convertedLabel, formatMoney, isSettlement, splitLabel, tripTotalBase } from '../lib/money'
 import { cn } from '../lib/utils'
@@ -6,10 +6,11 @@ import { useStore } from '../state'
 import type { Expense, Trip } from '../types'
 import { BalancesView } from './BalancesView'
 import { ExpenseForm } from './ExpenseForm'
+import { LeaderboardView } from './LeaderboardView'
 import { TripSettings } from './TripSettings'
 import { Avatar, Button, Chevron, Group, GroupRow, Screen, SectionLabel } from './ui'
 
-type Tab = 'expenses' | 'settle' | 'settings'
+type Tab = 'expenses' | 'settle' | 'board' | 'settings'
 
 export function TripPage({ trip }: { trip: Trip }) {
   const { selectTrip, saveTrip, deleteTrip, notify, shareWithFriends } = useStore()
@@ -66,6 +67,7 @@ export function TripPage({ trip }: { trip: Trip }) {
         <div className="hidden gap-1 rounded-[9px] bg-[var(--fill)] p-[2px] sm:flex">
           <TabBtn on={tab === 'expenses'} onClick={() => setTab('expenses')} icon={<Receipt size={15} strokeWidth={1.75} />} label="Expenses" compact />
           <TabBtn on={tab === 'settle'} onClick={() => setTab('settle')} icon={<Scale size={15} strokeWidth={1.75} />} label="Settle" compact />
+          <TabBtn on={tab === 'board'} onClick={() => setTab('board')} icon={<Trophy size={15} strokeWidth={1.75} />} label="Board" compact />
           <TabBtn on={tab === 'settings'} onClick={() => setTab('settings')} icon={<Settings2 size={15} strokeWidth={1.75} />} label="Trip" compact />
         </div>
         <div className="mr-1 flex items-center gap-1">
@@ -218,6 +220,16 @@ export function TripPage({ trip }: { trip: Trip }) {
           />
         )}
 
+        {tab === 'board' && (
+          <LeaderboardView
+            trip={trip}
+            onOpenExpense={(expense) => {
+              setEditing(expense)
+              setFormOpen(true)
+            }}
+          />
+        )}
+
         {tab === 'settings' && (
           <TripSettings
             trip={trip}
@@ -235,6 +247,7 @@ export function TripPage({ trip }: { trip: Trip }) {
         <div className="mx-auto flex max-w-md justify-around">
           <TabBtn on={tab === 'expenses'} onClick={() => setTab('expenses')} icon={<Receipt size={22} strokeWidth={1.75} />} label="Expenses" />
           <TabBtn on={tab === 'settle'} onClick={() => setTab('settle')} icon={<Scale size={22} strokeWidth={1.75} />} label="Settle" />
+          <TabBtn on={tab === 'board'} onClick={() => setTab('board')} icon={<Trophy size={22} strokeWidth={1.75} />} label="Board" />
           <TabBtn on={tab === 'settings'} onClick={() => setTab('settings')} icon={<Settings2 size={22} strokeWidth={1.75} />} label="Trip" />
         </div>
       </nav>
@@ -286,8 +299,8 @@ function TabBtn({
       className={cn(
         'inline-flex items-center justify-center gap-1 rounded-[7px] font-medium',
         compact
-          ? 'min-h-[36px] px-3 py-1.5 text-[13px]'
-          : 'min-h-[44px] min-w-[4.5rem] flex-col gap-0.5 px-3 py-1 text-[10px]',
+          ? 'min-h-[36px] px-2.5 py-1.5 text-[12px]'
+          : 'min-h-[44px] min-w-[3.6rem] flex-col gap-0.5 px-2 py-1 text-[10px]',
         on ? 'text-[var(--accent)]' : 'text-[var(--muted)]',
         compact && on && 'bg-white text-black shadow-sm dark:bg-[var(--grouped-3)] dark:text-white',
       )}
